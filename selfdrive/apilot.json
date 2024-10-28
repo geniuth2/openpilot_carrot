@@ -724,7 +724,7 @@
       "egroup": "LAT",
       "etitle": "LaneLine: AdjustCurveOffset (0)cm",
       "edescr": "",
-      "min": -20,
+      "min": 0,
       "max": 500,
       "default": 0,
       "unit": 1
@@ -765,7 +765,7 @@
       "edescr": "",
       "min": 0,
       "max": 100,
-      "default": 89,
+      "default": 0,
       "unit": 1
     },
     {
