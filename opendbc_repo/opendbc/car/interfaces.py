@@ -357,7 +357,7 @@ class CarInterfaceBase(ABC):
     ret.longitudinalTuning.kiBP = [0.]
     ret.longitudinalTuning.kiV = [0.]
     # TODO estimate car specific lag, use .15s for now
-    ret.longitudinalActuatorDelay = 0.15
+    ret.longitudinalActuatorDelay = Params().get_float("LongActuatorDelay")*0.01 # 0.15
     ret.steerLimitTimer = 1.0
     return ret
 
