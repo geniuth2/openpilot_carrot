@@ -41,7 +41,7 @@ class CarInterface(CarInterfaceBase):
 
     if ret.flags & HyundaiFlags.CANFD:
       # Shared configuration for CAN-FD cars
-      ret.experimentalLongitudinalAvailable = candidate not in (CANFD_UNSUPPORTED_LONGITUDINAL_CAR | CANFD_RADAR_SCC_CAR)
+      ret.experimentalLongitudinalAvailable = True #candidate not in (CANFD_UNSUPPORTED_LONGITUDINAL_CAR | CANFD_RADAR_SCC_CAR)
       ret.enableBsm = 0x1e5 in fingerprint[CAN.ECAN]
 
       if 0x105 in fingerprint[CAN.ECAN]:
@@ -109,20 +109,24 @@ class CarInterface(CarInterfaceBase):
 
     else:
       # Shared configuration for non CAN-FD cars
-      ret.experimentalLongitudinalAvailable = candidate not in (UNSUPPORTED_LONGITUDINAL_CAR | CAMERA_SCC_CAR)
+      ret.experimentalLongitudinalAvailable = True #candidate not in (UNSUPPORTED_LONGITUDINAL_CAR | CAMERA_SCC_CAR)
       ret.enableBsm = 0x58b in fingerprint[0]
+      print(f"$$$ enableBsm = {ret.enableBsm}")
 
       # Send LFA message on cars with HDA
       if 0x485 in fingerprint[2]:
         ret.flags |= HyundaiFlags.SEND_LFA.value
+        print("$$$SEND_LFA")
 
       # These cars use the FCA11 message for the AEB and FCW signals, all others use SCC12
       if 0x38d in fingerprint[0] or 0x38d in fingerprint[2]:
         ret.flags |= HyundaiFlags.USE_FCA.value
+        print("$$$USE_FCA")
 
       if ret.flags & HyundaiFlags.LEGACY:
         # these cars require a special panda safety mode due to missing counters and checksums in the messages
         ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.hyundaiLegacy)]
+        print("$$$Legacy Safety Model")
       else:
         ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.hyundai, 0)]
 
@@ -132,8 +136,10 @@ class CarInterface(CarInterfaceBase):
 
       if 1290 in fingerprint[2]:
         ret.extFlags |= HyundaiExtFlags.HAS_SCC13.value
+        print("$$$HAS_SCC13")
       if 905 in fingerprint[2]:
         ret.extFlags |= HyundaiExtFlags.HAS_SCC14.value
+        print("$$$HAS_SCC14")
 
     # Common lateral control setup
 

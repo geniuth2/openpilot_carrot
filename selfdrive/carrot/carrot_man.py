@@ -436,7 +436,7 @@ class CarrotMan:
     ## 국가법령정보센터: 도로설계기준
     V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
     #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
-    V_CRUVE_LOOKUP_VALS = [280, 130, 115, 110, 100, 90, 80, 70, 60, 40, 35, 25, 20]
+    V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 
     if not sm.alive['carState'] and not sm.alive['modelV2']:
         return 250
@@ -449,7 +449,7 @@ class CarrotMan:
     v_ego = sm['carState'].vEgo
     # 회전속도를 선속도 나누면 : 곡률이 됨. [12:20]은 약 1.4~3.5초 앞의 곡률을 계산함.
     orientationRates = np.array(sm['modelV2'].orientationRate.z, dtype=np.float32)
-    speed = min(self.turn_speed_last / 3.6, clip(v_ego, 0.3, 100.0))
+    speed = min(self.turn_speed_last / 3.6, clip(v_ego, 0.5, 100.0))
     
     # 절대값이 가장 큰 요소의 인덱스를 찾습니다.
     max_index = np.argmax(np.abs(orientationRates[12:20]))
@@ -506,7 +506,7 @@ class CarrotServ:
     
     self.nRoadLimitSpeed = 30
 
-    self.active = 0     ## 1: CarrotMan Active, 2: sdi active , 3: speed decel active, 4: section active, 5: bump active
+    self.active = 0     ## 1: CarrotMan Active, 2: sdi active , 3: speed decel active, 4: section active, 5: bump active, 6: speed limit active
     self.active_count = 0
     self.active_sdi_count = 0
     self.active_sdi_count_max = 80
@@ -658,8 +658,10 @@ class CarrotServ:
   def traffic_light(self, x, y, color, cnf):    
     traffic_red = 0
     traffic_green = 0
+    traffic_left = 0
     traffic_red_trig = 0
     traffic_green_trig = 0
+    traffic_left_trig = 0
     for pdata in self.traffic_light_q:
       px, py, pcolor,pcnf = pdata
       if abs(x - px) < 0.2 and abs(y - py) < 0.2:
@@ -673,6 +675,9 @@ class CarrotServ:
           if color in ["Green Light"]: #, "Left turn"]:
             traffic_green_trig += cnf
             traffic_green += cnf
+          elif color in ["Left turn"]:
+            traffic_left_trig += cnf
+            traffic_left += cnf
           elif color in ["Red Light", "Yellow Light"]:
             traffic_red += cnf
 
@@ -685,6 +690,8 @@ class CarrotServ:
       self.traffic_state = 2
       #self._add_log("Green light triggered")
       #print("Green light triggered")
+    elif traffic_left_trig > 0:
+      self.traffic_state = 3
     elif traffic_red > 0:
       self.traffic_state = 1
       #self._add_log("Red light continued")
@@ -870,7 +877,7 @@ class CarrotServ:
         self.xSpdType = 4
       elif self.nSdiType == 7: #이동식카메라
         self.xSpdLimit = self.xSpdDist = 0
-    elif self.nSdiPlusType == 22 or self.nSdiType == 22: # speed bump
+    elif (self.nSdiPlusType == 22 or self.nSdiType == 22) and self.roadcate > 1: # speed bump, roadcate:0,1: highway
       self.xSpdLimit = self.autoNaviSpeedBumpSpeed
       self.xSpdDist = self.nSdiPlusDist if self.nSdiPlusType == 22 else self.nSdiDist
       self.xSpdType = 22
@@ -1004,6 +1011,7 @@ class CarrotServ:
     else:
       v_ego = 0
       delta_dist = 0
+      CS = None
       
     bearing = self.nPosAngle #self._update_gps(v_ego, sm)
 
@@ -1017,7 +1025,7 @@ class CarrotServ:
     else:
       self.active = 0
 
-    if self.active <= 0:
+    if self.active <= 1:
       self.xSpdType = self.navType = self.xTurnInfo = self.xTurnInfoNext = -1
       self.nSdiType = self.nSdiBlockType = self.nSdiPlusBlockType = -1
       self.nTBTTurnType = self.nTBTTurnTypeNext = -1
@@ -1043,6 +1051,9 @@ class CarrotServ:
       if self.xSpdType == 4:
         sdi_speed = self.xSpdLimit
         self.active = 4
+    elif CS is not None and CS.speedLimit > 0 and CS.speedLimitDistance > 0:
+      sdi_speed = min(sdi_speed, self.calculate_current_speed(CS.speedLimitDistance, CS.speedLimit * self.autoNaviSpeedSafetyFactor, self.autoNaviSpeedCtrlEnd, self.autoNaviSpeedDecelRate))
+      self.active = 6
 
     ### TBT 속도제어
     atc_desired, self.atcType, self.atcSpeed, self.atcDist = self.update_auto_turn(v_ego*3.6, sm, self.xTurnInfo, self.xDistToTurn, True)
@@ -1050,7 +1061,7 @@ class CarrotServ:
 
     if self.nSdiType  >= 0: # or self.active > 0:      
       #self.debugText = f"Atc:{atc_desired:.1f},{self.xTurnInfo}:{self.xDistToTurn:.1f}, I({self.nTBTNextRoadWidth},{self.roadcate}) Atc2:{atc_desired_next:.1f},{self.xTurnInfoNext},{self.xDistToTurnNext:.1f}"
-      self.debugText = f" {self.nSdiType}/{self.nSdiSpeedLimit}/{self.nSdiDist},BLOCK:{self.nSdiBlockType}/{self.nSdiBlockSpeed}/{self.nSdiBlockDist}, PLUS:{self.nSdiPlusType}/{self.nSdiPlusSpeedLimit}/{self.nSdiPlusDist}"
+      self.debugText = "" #f" {self.nSdiType}/{self.nSdiSpeedLimit}/{self.nSdiDist},BLOCK:{self.nSdiBlockType}/{self.nSdiBlockSpeed}/{self.nSdiBlockDist}, PLUS:{self.nSdiPlusType}/{self.nSdiPlusSpeedLimit}/{self.nSdiPlusDist}"
     #elif self.nGoPosDist > 0 and self.active > 1:
     #  self.debugText = " 목적지:{:.1f}km/{:.1f}분 남음".format(self.nGoPosDist/1000., self.nGoPosTime / 60)
     else:
@@ -1065,7 +1076,7 @@ class CarrotServ:
     speed_n_sources = [
       (atc_desired, "atc"),
       (atc_desired_next, "atc2"),
-      (sdi_speed, "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
+      (sdi_speed, "hda" if self.active == 6 else "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
       (abs(vturn_speed), "vturn"),
     ]
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])

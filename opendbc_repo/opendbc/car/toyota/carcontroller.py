@@ -10,6 +10,7 @@ from opendbc.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR, T
                                         CarControllerParams, ToyotaFlags, \
                                         UNSUPPORTED_DSU_CAR
 from opendbc.can.packer import CANPacker
+from openpilot.common.params import Params
 
 LongCtrlState = structs.CarControl.Actuators.LongControlState
 SteerControlType = structs.CarParams.SteerControlType
@@ -46,7 +47,7 @@ class CarController(CarControllerBase):
     self.distance_button = 0
 
     self.pcm_accel_compensation = 0.0
-    self.permit_braking = 0.0
+    self.permit_braking = True
 
     self.packer = CANPacker(dbc_name)
     self.accel = 0
@@ -64,6 +65,14 @@ class CarController(CarControllerBase):
 
     # *** control msgs ***
     can_sends = []
+
+    params = Params()
+    steerMax = params.get_int("CustomSteerMax")
+    steerDeltaUp = params.get_int("CustomSteerDeltaUp")
+    steerDeltaDown = params.get_int("CustomSteerDeltaDown")
+    self.params.STEER_MAX = self.params.STEER_MAX if steerMax <= 0 else steerMax
+    self.params.STEER_DELTA_UP = self.params.STEER_DELTA_UP if steerDeltaUp <= 0 else steerDeltaUp
+    self.params.STEER_DELTA_DOWN = self.params.STEER_DELTA_DOWN if steerDeltaDown <= 0 else steerDeltaDown
 
     # *** handle secoc reset counter increase ***
     if self.CP.flags & ToyotaFlags.SECOC.value:
@@ -146,10 +155,13 @@ class CarController(CarControllerBase):
 
     # *** gas and brake ***
     # For cars where we allow a higher max acceleration of 2.0 m/s^2, compensate for PCM request overshoot and imprecise braking
-    # TODO: sometimes when switching from brake to gas quickly, CLUTCH->ACCEL_NET shows a slow unwind. make it go to 0 immediately
     if self.CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT and CC.longActive and not CS.out.cruiseState.standstill:
       # calculate amount of acceleration PCM should apply to reach target, given pitch
-      accel_due_to_pitch = math.sin(CS.slope_angle) * ACCELERATION_DUE_TO_GRAVITY
+      if len(CC.orientationNED) == 3:
+        accel_due_to_pitch = math.sin(CC.orientationNED[1]) * ACCELERATION_DUE_TO_GRAVITY
+      else:
+        accel_due_to_pitch = 0.0
+
       net_acceleration_request = actuators.accel + accel_due_to_pitch
 
       # let PCM handle stopping for now

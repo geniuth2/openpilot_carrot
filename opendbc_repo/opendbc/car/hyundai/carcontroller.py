@@ -407,51 +407,36 @@ class CarController(CarControllerBase):
       self.button_spamming_count = 0
     return 0
 
+from openpilot.common.filter_simple import StreamingMovingAverage
 class HyundaiJerk:
   def __init__(self):
     self.jerk = 0.0
-    self.accel_last = 0
     self.jerk_u = self.jerk_l = 0.0
     self.cb_upper = self.cb_lower = 0.0
-    
-  def cal_jerk(self, accel, actuators):
-    if actuators.longControlState == LongCtrlState.off:
-      _jerk = 0.0
-    elif actuators.longControlState == LongCtrlState.stopping:# or hud_control.softHold > 0:
-      _jerk = 0.0
-    else:
-      _jerk = accel - self.accel_last
-
-    _jerk /= DT_CTRL
-    self.jerk = self.jerk * 0.9 + _jerk * 0.1
-    self.accel_last = accel
-    return self.jerk
+    self.jerk_u_min = 0.5
 
   def make_jerk(self, CP, CS, accel, actuators, hud_control):
-    #jerk = self.cal_jerk(accel, actuators)
-    jerk = actuators.jerk if actuators.longControlState == LongCtrlState.pid else 0.0
-    a_error = actuators.aTargetNow - CS.out.aEgo
-    jerk = jerk + (a_error * 1.0) #2.0
+    if actuators.longControlState == LongCtrlState.stopping:
+      self.jerk = self.jerk_u_min / 2 - CS.out.aEgo
+    else:
+      jerk = actuators.jerk if actuators.longControlState == LongCtrlState.pid else 0.0
+      a_error = actuators.aTargetNow - CS.out.aEgo
+      self.jerk = jerk + a_error
 
-    jerkLimit = 5.0
-    self.jerk_u = self.jerk_l = jerkLimit
-    self.cb_upper = self.cb_lower = 0.0
-
-    #startingJerk = 0.5 #self.jerkStartLimit
-    #self.jerk_count += DT_CTRL
-    #jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, jerkLimit])
-    jerk_max = jerkLimit
+    jerk_max_l = 5.0
+    jerk_max_u = jerk_max_l
     if actuators.longControlState == LongCtrlState.off:
-      self.jerk_u = jerkLimit
-      self.jerk_l = jerkLimit          
-      #self.jerk_count = 0
+      self.jerk_u = jerk_max_u
+      self.jerk_l = jerk_max_l
+      self.cb_upper = self.cb_lower = 0.0
     else:
       if CP.flags & HyundaiFlags.CANFD:
-        self.jerk_u = min(max(0.5, jerk * 2.0), jerk_max)
-        self.jerk_l = min(max(1.0, -jerk * 3.0), jerkLimit)
+        self.jerk_u = min(max(self.jerk_u_min, self.jerk * 2.0), jerk_max_u)
+        self.jerk_l = min(max(1.0, -self.jerk * 3.0), jerk_max_l)
+        self.cb_upper = self.cb_lower = 0.0
       else:
-        self.jerk_u = min(max(0.5, jerk * 2.0), jerk_max)
-        self.jerk_l = min(max(0.5, -jerk * 2.0), jerkLimit)
+        self.jerk_u = min(max(self.jerk_u_min, self.jerk * 2.0), jerk_max_u)
+        self.jerk_l = min(max(1.0, -self.jerk * 2.0), jerk_max_l)
         self.cb_upper = clip(0.9 + accel * 0.2, 0, 1.2)
         self.cb_lower = clip(0.8 + accel * 0.2, 0, 1.2)
 

@@ -1583,7 +1583,7 @@ BO_ 352 AHB1: 8 iBAU
  SG_ CF_Ahb_Bzzr : 26|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ CF_Ahb_ChkSum : 56|8@1+ (1,0) [0|255] "" Vector__XXX
 
-BO_ 1191 MFC_4a7: 8 XXX
+BO_ 1191 MFC_4a7: 2 XXX
  SG_ PAINT1 : 0|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 1162 BCA11: 8 BCW

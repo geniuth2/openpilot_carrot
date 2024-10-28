@@ -33,12 +33,7 @@ def create_lkas11(packer, frame, CP, apply_steer, steer_req,
   values["CF_Lkas_ToiFlt"] = torque_fault  # seems to allow actuation on CR_Lkas_StrToqReq
   values["CF_Lkas_MsgCount"] = frame % 0x10
 
-  if CP.carFingerprint in (CAR.HYUNDAI_SONATA, CAR.HYUNDAI_PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.HYUNDAI_SANTA_FE,
-                           CAR.HYUNDAI_IONIQ_EV_2020, CAR.HYUNDAI_IONIQ_PHEV, CAR.KIA_SELTOS, CAR.HYUNDAI_ELANTRA_2021, CAR.GENESIS_G70_2020,
-                           CAR.HYUNDAI_ELANTRA_HEV_2021, CAR.HYUNDAI_SONATA_HYBRID, CAR.HYUNDAI_KONA_EV, CAR.HYUNDAI_KONA_HEV, CAR.HYUNDAI_KONA_EV_2022,
-                           CAR.HYUNDAI_SANTA_FE_2022, CAR.KIA_K5_2021, CAR.HYUNDAI_IONIQ_HEV_2022, CAR.HYUNDAI_SANTA_FE_HEV_2022,
-                           CAR.HYUNDAI_SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022, CAR.KIA_K5_HEV_2020, CAR.KIA_CEED,
-                           CAR.HYUNDAI_AZERA_6TH_GEN, CAR.HYUNDAI_AZERA_HEV_6TH_GEN, CAR.HYUNDAI_CUSTIN_1ST_GEN):
+  if CP.flags & HyundaiFlags.SEND_LFA.value:
     values["CF_Lkas_LdwsActivemode"] = int(left_lane) + (int(right_lane) << 1)
     values["CF_Lkas_LdwsOpt_USM"] = 2
 
@@ -192,7 +187,7 @@ def create_acc_commands_scc(packer, enabled, accel, jerk, idx, hud_control, set_
     values["ComfortBandUpper"] = jerk.cb_upper
     values["ComfortBandLower"] = jerk.cb_lower
     values["JerkUpperLimit"] = jerk.jerk_u
-    values["JerkLowerLimit"] = jerk.jerk_l
+    values["JerkLowerLimit"] = jerk.jerk_l if long_enabled else 0 # for KONA test
     values["ACCMode"] = scc14_acc_mode #2 if enabled and long_override else 1 if long_enabled else 4 # stock will always be 4 instead of 0 after first disengage
     values["ObjGap"] = objGap #2 if hud_control.leadVisible else 0 # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
     values["ObjDistStat"] = objGap2
@@ -263,7 +258,7 @@ def create_acc_commands(packer, enabled, accel, jerk, idx, hud_control, set_spee
   scc12_values = {
     "ACCMode": scc12_acc_mode,
     "StopReq": stop_req,
-    "aReqRaw": accel,
+    "aReqRaw": 0 if stop_req > 0 else accel,
     "aReqValue": accel,  # stock ramps up and down respecting jerk limit until it reaches aReqRaw
     "CR_VSM_Alive": idx % 0xF,
   }
@@ -347,7 +342,7 @@ def create_mdps12(packer, frame, mdps12):
   values["CF_Mdps_MsgCount2"] = frame % 0x100
   values["CF_Mdps_Chksum2"] = 0
 
-  dat = packer.make_can_msg("MDPS12", 2, values)[2]
+  dat = packer.make_can_msg("MDPS12", 2, values)[1]
   checksum = sum(dat) % 256
   values["CF_Mdps_Chksum2"] = checksum
 

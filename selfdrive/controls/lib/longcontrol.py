@@ -40,7 +40,10 @@ def long_control_state_trans(CP, active, long_control_state, v_ego,
 
     elif long_control_state in [LongCtrlState.starting, LongCtrlState.pid]:
       if stopping_condition:
-        if long_control_state == LongCtrlState.starting or (a_ego > stopping_accel and v_ego < 1.0): # carrot
+        stopping_accel = stopping_accel if stopping_accel < 0.0 else -0.5
+        if a_ego > stopping_accel and v_ego < 1.0:
+          long_control_state = LongCtrlState.stopping
+        if long_control_state == LongCtrlState.starting:
           long_control_state = LongCtrlState.stopping
       elif started_condition:
         long_control_state = LongCtrlState.pid
@@ -68,6 +71,7 @@ class LongControl:
     soft_hold_active = CS.softHoldActive > 0
     a_target = long_plan.aTarget
     v_target = long_plan.vTarget
+    j_target = long_plan.jTarget
     should_stop = long_plan.shouldStop
 
     speeds = long_plan.speeds
@@ -97,7 +101,7 @@ class LongControl:
 
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        should_stop, CS.brakePressed,
-                                                       CS.cruiseState.standstill, CS.aEgo, self.stopping_accel if self.stopping_accel < 0.0 else -0.5)
+                                                       CS.cruiseState.standstill, CS.aEgo, self.stopping_accel)
     if active and soft_hold_active:
       self.long_control_state = LongCtrlState.stopping
       

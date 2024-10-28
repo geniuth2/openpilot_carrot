@@ -79,7 +79,7 @@ class CarrotPlanner:
       self.mySafeFactor = self.mySafeModeFactor
 
     self.stop_distance = 6.0
-    self.trafficStopDistanceAdjust = self.params.get_float("TrafficStopDistanceAdjust") / 100.
+    self.trafficStopDistanceAdjust = params.get_float("TrafficStopDistanceAdjust") / 100.
     self.comfortBrake = 2.4 #params.get_float("ComfortBrake") / 100.
     self.comfort_brake = self.comfortBrake
 
@@ -104,9 +104,11 @@ class CarrotPlanner:
 
 
     self.trafficState_carrot = 0
+    self.carrot_stay_stop = False
 
     self.eco_over_speed = 4
     self.eco_target_speed = 0
+
 
   def _params_update(self):
     self.frame += 1
@@ -135,6 +137,7 @@ class CarrotPlanner:
       self.cruiseMaxVals6 = self.params.get_float("CruiseMaxVals6") / 100.
     elif self.params_count == 40:
       self.stop_distance = self.params.get_float("StopDistanceCarrot") / 100.
+      self.comfortBrake = self.params.get_float("ComfortBrake") / 100.
 
     elif self.params_count >= 100:
       
@@ -171,7 +174,7 @@ class CarrotPlanner:
     if v_ego_kph < 1.0:
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 82.0:
-      stopSign = model_x < d_rel and model_x < interp(v[0], [60/3.6, 80/3.6], [120.0, 150]) and ((model_v < 3.0) or (model_v < v[0]*0.7))  and abs(y[-1]) < 5.0
+      stopSign = model_x < d_rel - 3.0 and model_x < interp(v[0], [60/3.6, 80/3.6], [120.0, 150]) and ((model_v < 3.0) or (model_v < v[0]*0.7))  and abs(y[-1]) < 5.0
     else:
       stopSign = False
 
@@ -189,26 +192,44 @@ class CarrotPlanner:
   def _update_carrot_man(self, sm, v_ego_kph, v_cruise_kph):
     if sm.alive['carrotMan']:
       carrot_man = sm['carrotMan']
-      if self.trafficState_carrot == 1 and carrot_man.trafficState == 2:
+      atc_turn_left = carrot_man.atcType == "turn left"
+      trigger_start = self.carrot_staty_stop = False
+      if atc_turn_left or sm['carState'].leftBlinker:
+        if self.trafficState_carrot == 1 and carrot_man.trafficState == 3: # red -> left triggered
+          trigger_start = True
+        elif carrot_man.trafficState in [1, 2]:
+          self.carrot_stay_stop = True
+      elif self.trafficState_carrot == 1 and carrot_man.trafficState == 2:  # red -> green triggered
+        trigger_start = True
+      else:
+        trigger_start = False
+      self.trafficState_carrot = carrot_man.trafficState
+
+      if trigger_start:
         if self.soft_hold_active > 0:
           self.events.add(EventName.trafficSignChanged)
         elif self.xState in [XState.e2eStop, XState.e2eStopped]:
           self.xState = XState.e2eCruise
           self.traffic_starting_count = 10.0 / DT_MDL
-      self.trafficState_carrot = carrot_man.trafficState
       
       v_cruise_kph = min(v_cruise_kph, carrot_man.desiredSpeed)
       xSpdCountDown = carrot_man.xSpdCountDown if carrot_man.xSpdDist > 0 else 100
       xTurnCountDown = carrot_man.xTurnCountDown if carrot_man.xDistToTurn > 0 else 100
       left_sec = min(xSpdCountDown, xTurnCountDown)
+      max_left_sec = min(10, max(5, int(v_ego_kph/10)))
+      if 0 <= left_sec <= max_left_sec:
+        pass
+      elif left_sec > 0 and carrot_man.xSpdDist > 30 and carrot_man.desiredSource in ["cam", "hda"]:
+        left_sec = 11
+      else:
+        left_sec = -1
+
       if left_sec != self.left_sec:
-        max_left_sec = min(10, max(5, int(v_ego_kph/10)))
-        if 1 <= left_sec <= max_left_sec:
-          #self.events.add(getattr(EventName, f'audio{left_sec}'))
+        if 1 <= left_sec <= 11:
           self.params_memory.put_int_nonblocking("CarrotCountDownSec", left_sec)
         elif left_sec == 0 and self.left_sec == 1:
-          #self.events.add(EventName.audio0)
           self.params_memory.put_int_nonblocking("CarrotCountDownSec", left_sec)
+
         self.left_sec = left_sec
 
     return v_cruise_kph
@@ -266,13 +287,13 @@ class CarrotPlanner:
     v = model.velocity.x
 
     self.fakeCruiseDistance = 0.0
-    radar_detected = radarstate.leadOne.status & radarstate.leadOne.radar
+    lead_detected = radarstate.leadOne.status # & radarstate.leadOne.radar
 
     self.xStop = self.update_stop_dist(x[31])
     stop_model_x = self.xStop
 
     #self.check_model_stopping(v, v_ego, self.xStop, y)
-    self.check_model_stopping(v, v_ego, x[-1], y, radarstate.leadOne.dRel if radarstate.leadOne.status else 1000)
+    self.check_model_stopping(v, v_ego, x[-1], y, radarstate.leadOne.dRel if lead_detected else 1000)
 
     if self.myDrivingMode == 4:
       self.trafficState = TrafficState.off
@@ -285,10 +306,10 @@ class CarrotPlanner:
     if self.xState == XState.e2eStopped:
       if carstate.gasPressed:
         self.xState = XState.e2ePrepare
-      elif radar_detected and (radarstate.leadOne.dRel - stop_model_x) < 2.0:
+      elif lead_detected and (radarstate.leadOne.dRel - stop_model_x) < 2.0:
         self.xState = XState.lead
       elif self.stopping_count == 0:
-        if self.trafficState == TrafficState.green:
+        if self.trafficState == TrafficState.green and not self.carrot_stay_stop and not carstate.leftBlinker:
           self.xState = XState.e2ePrepare
       self.stopping_count = max(0, self.stopping_count - 1)
       v_cruise = 0
@@ -298,7 +319,7 @@ class CarrotPlanner:
         #self.xState = XState.e2ePrepare
         self.xState = XState.e2eCruise
         self.traffic_starting_count = 10.0 / DT_MDL
-      elif radar_detected and (radarstate.leadOne.dRel - stop_model_x) < 2.0:
+      elif lead_detected and (radarstate.leadOne.dRel - stop_model_x) < 2.0:
         self.xState = XState.lead
       else:
         if self.trafficState == TrafficState.green:
@@ -317,7 +338,7 @@ class CarrotPlanner:
             self.stopping_count = 0.5 / DT_MDL
             self.xState = XState.e2eStopped
     elif self.xState == XState.e2ePrepare:
-      if radar_detected:
+      if lead_detected:
         self.xState = XState.lead
       elif v_ego_kph < 5.0 and self.trafficState != TrafficState.green:
         self.xState = XState.e2eStop
@@ -326,7 +347,7 @@ class CarrotPlanner:
         self.xState = XState.e2eCruise
     else: #XState.lead, XState.cruise, XState.e2eCruise
       self.traffic_starting_count = max(0, self.traffic_starting_count - 1)
-      if radar_detected:
+      if lead_detected:
         self.xState = XState.lead
       elif self.trafficState == TrafficState.red and abs(carstate.steeringAngleDeg) < 30 and self.traffic_starting_count == 0:
         self.events.add(EventName.trafficStopping)

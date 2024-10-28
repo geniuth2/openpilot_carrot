@@ -242,6 +242,9 @@ struct CarState {
   activateCruise @61 :Int16;
   latEnabled @62 :Bool;
   pcmCruiseGap @63 :Int16;      #0: can't read, 1,2,3,4: gap setting
+  speedLimit @64 :Float32;
+  speedLimitDistance @65 :Float32;
+  gearStep @66 :Int16;          
 
   struct Tpms {
     fl @0 :Float32;
@@ -293,7 +296,7 @@ struct CarState {
       accelCruise @3;
       decelCruise @4;
       cancel @5;
-      altButton1 @6;
+      lkas @6;
       altButton2 @7;
       mainCruise @8;
       setCruise @9;
