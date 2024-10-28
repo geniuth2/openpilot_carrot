@@ -1283,6 +1283,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   vTarget @43: Float32;
   xTarget @44: Float32;
   jTarget @45: Float32;
+  tFollow @46: Float32;
 
   solverExecutionTime @35 :Float32;
 
