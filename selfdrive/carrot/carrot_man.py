@@ -976,7 +976,7 @@ class CarrotServ:
       atc_type = "fork left" if atc_type == "turn left" else "fork right"
 
     if check_steer:
-      if 0 < x_dist_to_turn < atc_start_dist and atc_type in ["fork left", "fork right"]:
+      if 0 <= x_dist_to_turn < atc_start_dist and atc_type in ["fork left", "fork right"]:
         if not self.atc_paused:
           steering_pressed = sm["carState"].steeringPressed
           steering_torque = sm["carState"].steeringTorque

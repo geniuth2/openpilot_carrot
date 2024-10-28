@@ -109,6 +109,8 @@ class CarrotPlanner:
     self.eco_over_speed = 4
     self.eco_target_speed = 0
 
+    self.gas_override_speed = 0
+
 
   def _params_update(self):
     self.frame += 1
@@ -212,7 +214,17 @@ class CarrotPlanner:
           self.xState = XState.e2eCruise
           self.traffic_starting_count = 10.0 / DT_MDL
       
-      v_cruise_kph = min(v_cruise_kph, carrot_man.desiredSpeed)
+      v_cruise_kph_apply = min(v_cruise_kph, carrot_man.desiredSpeed)
+      if v_cruise_kph == v_cruise_kph_apply:
+        self.gas_override_speed = 0
+      else:
+        if sm['carState'].gasPressed and carrot_man.desiredSource not in ["cam"]:
+          self.gas_override_speed = v_ego_kph
+        elif sm['carState'].brakePressed:
+          self.gas_override_speed = 0
+        v_cruise_kph_apply = max(v_cruise_kph_apply, self.gas_override_speed)
+
+      v_cruise_kph = v_cruise_kph_apply
       xSpdCountDown = carrot_man.xSpdCountDown if carrot_man.xSpdDist > 0 else 100
       xTurnCountDown = carrot_man.xTurnCountDown if carrot_man.xDistToTurn > 0 else 100
       left_sec = min(xSpdCountDown, xTurnCountDown)
@@ -303,7 +315,9 @@ class CarrotPlanner:
     if carstate.gasPressed or carstate.brakePressed:
       self.user_stop_distance = -1
 
-    if self.xState == XState.e2eStopped:
+    if self.soft_hold_active > 0:
+      self.xState = XState.e2eStopped
+    elif self.xState == XState.e2eStopped:
       if carstate.gasPressed:
         self.xState = XState.e2ePrepare
       elif lead_detected and (radarstate.leadOne.dRel - stop_model_x) < 2.0:

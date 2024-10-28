@@ -508,6 +508,9 @@ private:
     int    softHoldActive = 0;
     bool    longActive = false;
 
+    QPointF tf_vertex_left;
+    QPointF tf_vertex_right;
+
 protected:
     bool make_data(const UIState* s) {
 		SubMaster& sm = *(s->sm);
@@ -571,6 +574,15 @@ protected:
         path_x = (int)path_fx;
         path_y = (int)path_fy;
         path_width = (int)path_fwidth;
+
+
+        float t_follow = lp.getTFollow();
+        float tf_distance = t_follow * v_ego + 6;
+        int tf_idx = get_path_length_idx(line, tf_distance);
+        float tf_y = line.getY()[tf_idx];
+        float tf_z = line.getZ()[tf_idx];
+        _model->mapToScreen(tf_distance, tf_y - 1.0, tf_z + 1.22, &tf_vertex_left);
+        _model->mapToScreen(tf_distance, tf_y + 1.0, tf_z + 1.22, &tf_vertex_right);
 
         return true;
 	};
@@ -649,7 +661,10 @@ public:
                 ui_draw_text(s, x + w, disp_y, str, 40, text_color, BOLD);
             }
         }
-
+        QPolygonF tf_vertext;
+        tf_vertext.push_back(tf_vertex_left);
+        tf_vertext.push_back(tf_vertex_right);
+        ui_draw_line(s, tf_vertext, nullptr, nullptr, 3.0, COLOR_WHITE);
 
         float px[7], py[7];
         NVGcolor rcolor = isLeadSCC() ? COLOR_RED : COLOR_ORANGE;
@@ -949,7 +964,7 @@ protected:
         ui_fill_rect(s->vg, { tbt_x, tbt_y - 60, 790, 240 + 60 }, COLOR_BLACK_ALPHA(120), 30);
         if (szPosRoadName.length() > 0) {
             nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
-   			ui_draw_text(s, tbt_x + 50, tbt_y, szPosRoadName.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
+   			ui_draw_text(s, tbt_x + 190, tbt_y-5, szPosRoadName.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
         }
 
         if(xTurnInfo > 0) {
@@ -1861,7 +1876,7 @@ public:
     char    gear_str_last[32] = "";
     int     blink_timer = 0;
     void drawHud(UIState* s) {
-        blink_timer = (blink_timer + 1) % 32;
+        blink_timer = (blink_timer + 1) % 16;
         nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
 
         int x = 140;// 120;
@@ -1911,6 +1926,7 @@ public:
 
         // draw apply speed
         NVGcolor textColor = COLOR_GREEN;
+        NVGcolor white_color = COLOR_WHITE_ALPHA(130);
         char apply_speed_str[32];
         int apply_x = bx + 250;
         int apply_y = by - 50;
@@ -1963,7 +1979,7 @@ public:
 #endif
         for (int i = 0; i < gap; i++) {
             //ui_fill_rect(s->vg, { (int)(dx + i * ddx), (int)dy, (int)ddx - 2, 48 }, COLOR_GREEN_ALPHA(180), 4, 3);
-            ui_fill_rect(s->vg, { (int)(dx), (int)(dy - ddy*(i+1) + 2), (int)70, (int)ddy-2}, COLOR_GREEN_ALPHA(180), 4, 3);
+            ui_fill_rect(s->vg, { (int)(dx), (int)(dy - ddy*(i+1) + 2), (int)70, (int)ddy-2}, COLOR_GREEN_ALPHA(120), 4, 3, &white_color);
         }
 
         char gear_str[32] = "R";
@@ -1987,7 +2003,7 @@ public:
         else if (carState.getGearShifter() == cereal::CarState::GearShifter::ECO) strcpy(gear_str, "E");
 		else strcpy(gear_str, "M");
 
-        ui_fill_rect(s->vg, { dx - 35, dy - 70, 70, 90 }, COLOR_GREEN_ALPHA(80), 15, 1);
+        ui_fill_rect(s->vg, { dx - 35, dy - 70, 70, 80 }, COLOR_GREEN_ALPHA(120), 15, 3, &white_color);
         ui_draw_text(s, dx, dy, gear_str, 70, COLOR_WHITE, BOLD);
 
         if (strcmp(gear_str, gear_str_last)) {
@@ -2001,7 +2017,7 @@ public:
         active_carrot = 2;
 #endif
         if (active_carrot >= 2) {
-            ui_fill_rect(s->vg, { dx - 55, dy - 38, 110, 48 }, COLOR_GREEN_ALPHA(250), 15, 2);
+            ui_fill_rect(s->vg, { dx - 55, dy - 38, 110, 48 }, COLOR_GREEN, 15, 2);
             ui_draw_text(s, dx, dy, "APN", 40, COLOR_WHITE, BOLD);
         }
         else if (active_carrot >= 1) {
@@ -2022,7 +2038,7 @@ public:
             NVGcolor limit_color = COLOR_GREEN_ALPHA(130);
             if (xSpdLimit > 0 && xSignType != 22) {
                 disp_speed = xSpdLimit;
-                limit_color = (blink_timer <= 16) ? COLOR_RED_ALPHA(180) : COLOR_YELLOW_ALPHA(130);
+                limit_color = (blink_timer <= 8) ? COLOR_RED_ALPHA(180) : COLOR_YELLOW_ALPHA(130);
                 ui_draw_text(s, dx, dy-45, "CAM", 30, COLOR_WHITE, BOLD);
             }
             else {

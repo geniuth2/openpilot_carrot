@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import math
-from pickle import LONG
 import numpy as np
 from openpilot.common.numpy_fast import clip, interp
 
@@ -158,7 +157,8 @@ class LongitudinalPlanner:
     if self.mpc.mode == 'acc':
       #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
       accel_limits = [A_CRUISE_MIN, self.carrot.get_carrot_accel(v_ego)]
-      accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+      steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
+      accel_limits_turns = limit_accel_in_turns(v_ego, steer_angle_without_offset, accel_limits, self.CP)
     else:
       accel_limits = [ACCEL_MIN, ACCEL_MAX]
       accel_limits_turns = [ACCEL_MIN, ACCEL_MAX]
@@ -242,6 +242,7 @@ class LongitudinalPlanner:
     longitudinalPlan.xState = self.carrot.xState.value
     longitudinalPlan.trafficState = self.carrot.trafficState.value
     longitudinalPlan.xTarget = self.v_cruise_kph
+    longitudinalPlan.tFollow = self.mpc.t_follow
     longitudinalPlan.events = self.carrot.events.to_msg()
 
     pm.send('longitudinalPlan', plan_send)
