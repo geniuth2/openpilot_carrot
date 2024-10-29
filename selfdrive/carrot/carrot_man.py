@@ -578,6 +578,10 @@ class CarrotServ:
     self.traffic_light_count = -1
     self.traffic_state = 0
 
+    self.left_spd_sec = 0
+    self.left_tbt_sec = 0
+
+
     self.atc_paused = False
 
     self.debugText = ""
@@ -1088,10 +1092,13 @@ class CarrotServ:
         pass
       else:
         if self.xSpdDist > 0:
-          left_spd_sec = int(max(self.xSpdDist - v_ego, 1) / max(1, v_ego) + 0.5)
+          left_spd_sec = min(self.left_spd_sec, int(max(self.xSpdDist - v_ego, 1) / max(1, v_ego) + 0.5))
           
       if self.xDistToTurn > 0:
-        left_tbt_sec = int(max(self.xDistToTurn - v_ego, 1) / max(1, v_ego) + 0.5)
+        left_tbt_sec = min(self.left_tbt_sec, int(max(self.xDistToTurn - v_ego, 1) / max(1, v_ego) + 0.5))
+
+    self.left_spd_sec = left_spd_sec
+    self.left_tbt_sec = left_tbt_sec
 
     self._update_cmd()
     if False:

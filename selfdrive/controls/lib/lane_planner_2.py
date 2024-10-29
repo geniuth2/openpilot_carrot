@@ -134,7 +134,7 @@ class LanePlanner:
       both_lane_available = True
       self.lane_width_updated_count = max_updated_count
       self.lane_width_estimate.update(current_lane_width)
-    elif self.lane_width_updated_count < max_updated_count / 2 and v_ego > 0.1:   # 양쪽차선이 없을때.... 일정시간후(약5초)부터 speed차선폭 적용함.
+    elif self.lane_width_updated_count <= 0 and v_ego > 0.1:   # 양쪽차선이 없을때.... 일정시간후(10초)부터 speed차선폭 적용함.
       self.lane_width_estimate.update(speed_lane_width)
 
     self.lane_width =  self.lane_width_estimate.x

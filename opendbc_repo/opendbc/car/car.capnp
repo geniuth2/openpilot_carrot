@@ -562,7 +562,6 @@ struct CarParams {
   transmissionType @43 :TransmissionType;
   carFw @44 :List(CarFw);
 
-  radarTimeStep @45: Float32 = 0.05;  # time delta between radar updates, 20Hz is very standard
   radarDelay @74 :Float32;
   fingerprintSource @49: FingerprintSource;
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
