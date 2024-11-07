@@ -428,6 +428,25 @@ class CarrotMan:
         print(f"carrot_cmd_zmq error: {e}")
         time.sleep(1)
 
+  def recvall(self, sock, n):
+    """n바이트를 수신할 때까지 반복적으로 데이터를 받는 함수"""
+    data = bytearray()
+    while len(data) < n:
+      packet = sock.recv(n - len(data))
+      if not packet:
+        return None
+      data.extend(packet)
+    return data
+
+  def receive_double(self, sock):
+    double_data = self.recvall(sock, 8)  # Double은 8바이트
+    return struct.unpack('!d', double_data)[0]
+
+  def receive_float(self, sock):
+    float_data = self.recvall(sock, 4)  # Float은 4바이트
+    return struct.unpack('!f', float_data)[0]
+
+
   def carrot_route(self):
     host = '0.0.0.0'  # 혹은 다른 호스트 주소
     port = 7709  # 포트 번호
