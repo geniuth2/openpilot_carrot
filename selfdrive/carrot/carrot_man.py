@@ -54,6 +54,10 @@ class CarrotMan:
     self.carrot_panda_debug_thread.daemon = True
     self.carrot_panda_debug_thread.start()
 
+    self.carrot_route_thread = threading.Thread(target=self.carrot_route, args=[])
+    self.carrot_route_thread.daemon = True
+    self.carrot_route_thread.start()
+
     self.is_running = True
     threading.Thread(target=self.broadcast_version_info).start()
 
@@ -423,6 +427,60 @@ class CarrotMan:
       except Exception as e:
         print(f"carrot_cmd_zmq error: {e}")
         time.sleep(1)
+
+  def carrot_route(self):
+    host = '0.0.0.0'  # 혹은 다른 호스트 주소
+    port = 7709  # 포트 번호
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+      s.bind((host, port))
+      s.listen()
+
+      while True:
+        print("################# waiting conntection from CarrotMan route #####################")
+        conn, addr = s.accept()
+        with conn:
+          print(f"Connected by {addr}")
+          #self.clear_route()
+
+          # 전체 데이터 크기 수신
+          total_size_bytes = self.recvall(conn, 4)
+          if not total_size_bytes:
+            print("Connection closed or error occurred")
+            continue
+          try:
+            total_size = struct.unpack('!I', total_size_bytes)[0]
+            # 전체 데이터를 한 번에 수신
+            all_data = self.recvall(conn, total_size)
+            if all_data is None:
+                print("Connection closed or incomplete data received")
+                continue
+
+            points = []
+            for i in range(0, len(all_data), 8):
+              x, y = struct.unpack('!ff', all_data[i:i+8])
+              points.append((x, y))
+              #coord = Coordinate.from_mapbox_tuple((x, y))
+              #points.append(coord)
+            #coords = [c.as_dict() for c in points]
+         
+            print("Received points:", len(points))
+            #print("Received points:", coords)
+
+            #msg = messaging.new_message('navRoute', valid=True)
+            #msg.navRoute.coordinates = coords
+            #self.pm.send('navRoute', msg)
+            #self.carrot_route_active = True
+            #self.params.put_bool_nonblocking("CarrotRouteActive", True)
+
+            #if len(coords):
+            #  dest = coords[-1]
+            #  dest['place_name'] = "External Navi"
+            #  self.params.put("NavDestination", json.dumps(dest))
+
+          except Exception as e:
+            print(e)
+
 
   def carrot_curve_speed_params(self):
     self.autoCurveSpeedLowerLimit = int(self.params.get("AutoCurveSpeedLowerLimit"))
