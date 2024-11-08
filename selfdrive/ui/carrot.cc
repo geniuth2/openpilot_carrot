@@ -1889,11 +1889,8 @@ public:
         if (nav_path_vertex_count > 0) {
 			nvgBeginPath(s->vg);
 			nvgMoveTo(s->vg, nav_path_vertex[0].x(), nav_path_vertex[0].y());
-            printf("nav_path_vertex_count = %d\n", nav_path_vertex_count);
-            printf("nav_path_vertex[0] = %.1f, %.1f\n", nav_path_vertex[0].x(), nav_path_vertex[0].y());
 			for (int i = 1; i < nav_path_vertex_count; i++) {
 				nvgLineTo(s->vg, nav_path_vertex[i].x(), nav_path_vertex[i].y());
-                printf("nav_path_vertex[%d] = %.1f, %.1f\n", i, nav_path_vertex[i].x(), nav_path_vertex[i].y());
 			}
 			nvgStrokeColor(s->vg, COLOR_GREEN_ALPHA(200));
 			nvgStrokeWidth(s->vg, 10.0f);

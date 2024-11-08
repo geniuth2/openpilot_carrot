@@ -230,7 +230,7 @@ class CarrotMan:
 
     self.navi_points = []
 
-    self.navi_points = coordinates
+    #self.navi_points = coordinates
 
   def get_broadcast_address(self):
     try:
@@ -303,15 +303,17 @@ class CarrotMan:
   def carrot_navi_route(self):
     if len(self.navi_points) == 0:
       return
-    index = 0
-    alpha = 0.3
-    current_position = (
-        coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
-        coordinates[index][1] * alpha + coordinates[index+1][1] * (1-alpha)
-    )
-    heading_deg = 270
+    #index = 0
+    #alpha = 0.3
+    #current_position = (
+    #    coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
+    #    coordinates[index][1] * alpha + coordinates[index+1][1] * (1-alpha)
+    #)
+    #heading_deg = 270
+    current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
+    heading_deg = self.carrot_serv.nPosAngle
 
-    path, distances = get_path_after_distance(coordinates, current_position, 200)
+    path, distances = get_path_after_distance(self.navi_points, current_position, 200)
     if path:
       relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
       curvatures = []
