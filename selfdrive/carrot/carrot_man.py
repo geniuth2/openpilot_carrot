@@ -1363,7 +1363,10 @@ class CarrotServ:
     msg.carrotMan.nGoPosTime = self.nGoPosTime
     msg.carrotMan.szSdiDescr = self._get_sdi_descr(self.nSdiType)
 
-    msg.carrotMan.naviPaths = coords
+    navi_paths = msg.carrotMan.naviPaths
+    for i,(x,y) in enumerate(coords):
+      navi_paths[i].x = x
+      navi_paths[i].y = y
 
     pm.send('carrotMan', msg)
     
