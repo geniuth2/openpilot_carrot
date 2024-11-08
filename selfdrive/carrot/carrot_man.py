@@ -481,10 +481,10 @@ class CarrotMan:
               points.append((x, y))
               #coord = Coordinate.from_mapbox_tuple((x, y))
               #points.append(coord)
-            #coords = [c.as_dict() for c in points]
+            coords = [c.as_dict() for c in points]
          
             print("Received points:", len(points))
-            #print("Received points:", coords)
+            print("Received points:", coords)
 
             #msg = messaging.new_message('navRoute', valid=True)
             #msg.navRoute.coordinates = coords
@@ -574,7 +574,138 @@ class CarrotMan:
     # Get the target velocity for the maximum curve
     turnSpeed = max(abs(adjusted_target_lat_a / max_curve)**0.5  * 3.6, self.autoCurveSpeedLowerLimit)
     return turnSpeed * curv_direction
-  
+
+################ CarrotNavi
+# Haversine formula to calculate distance between two GPS coordinates
+def haversine(lon1, lat1, lon2, lat2):
+    R = 6371000  # Radius of Earth in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+# Get the closest point on a segment between two coordinates
+def closest_point_on_segment(p1, p2, current_position):
+    x1, y1 = p1
+    x2, y2 = p2
+    px, py = current_position
+
+    dx = x2 - x1
+    dy = y2 - y1
+    if dx == 0 and dy == 0:
+        return p1  # p1 and p2 are the same point
+
+    # Parameter t is the projection factor onto the line segment
+    t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)
+    t = max(0, min(1, t))  # Clamp t to the segment
+
+    closest_x = x1 + t * dx
+    closest_y = y1 + t * dy
+
+    return (closest_x, closest_y)
+
+# Get path after a certain distance from the current position
+# Including interpolated point at the exact distance_m location
+def get_path_after_distance(coordinates, current_position, distance_m):
+    total_distance = 0
+    path_after_distance = []
+
+    # Find the closest point on the path to the current position using segment projection
+    closest_index = -1
+    closest_point = None
+    min_distance = float('inf')
+
+    for i in range(len(coordinates) - 1):
+        p1 = coordinates[i]
+        p2 = coordinates[i + 1]
+        candidate_point = closest_point_on_segment(p1, p2, current_position)
+        distance = haversine(current_position[0], current_position[1], candidate_point[0], candidate_point[1])
+        if distance < min_distance:
+            min_distance = distance
+            closest_point = candidate_point
+            closest_index = i + 1
+
+    # Start from the closest point and calculate the path after the specified distance
+    if closest_index != -1:
+        # Always start with the closest point
+        total_distance = haversine(closest_point[0], closest_point[1], coordinates[closest_index][0], coordinates[closest_index][1])
+        path_after_distance.append(closest_point)
+        path_after_distance.append(coordinates[closest_index])
+
+        # Traverse the path and add points until the total distance exceeds distance_m
+        for i in range(closest_index + 1, len(coordinates)):
+            coord1 = coordinates[i - 1]
+            coord2 = coordinates[i]
+            segment_distance = haversine(coord1[0], coord1[1], coord2[0], coord2[1])
+
+            if total_distance + segment_distance >= distance_m:
+                # Interpolate to find the exact point at distance_m
+                remaining_distance = distance_m - total_distance
+                ratio = remaining_distance / segment_distance
+                interpolated_lon = coord1[0] + ratio * (coord2[0] - coord1[0])
+                interpolated_lat = coord1[1] + ratio * (coord2[1] - coord1[1])
+                path_after_distance.append((interpolated_lon, interpolated_lat))
+                break
+
+            total_distance += segment_distance
+            path_after_distance.append(coord2)
+
+    return path_after_distance
+
+# Convert GPS coordinates to relative x, y coordinates based on a reference point and heading
+def gps_to_relative_xy(gps_path, reference_point, heading_deg):
+    ref_lon, ref_lat = reference_point
+    relative_coordinates = []
+
+    # Convert heading from degrees to radians
+    heading_rad = math.radians(heading_deg)
+
+    for lon, lat in gps_path:
+        # Convert lat/lon differences to meters (assuming small distances for simple approximation)
+        x = (lon - ref_lon) * 40008000 * math.cos(math.radians(ref_lat)) / 360
+        y = (lat - ref_lat) * 40008000 / 360
+
+        # Rotate coordinates based on the heading angle to align with the car's direction
+        x_rot = x * math.cos(heading_rad) - y * math.sin(heading_rad)
+        y_rot = x * math.sin(heading_rad) + y * math.cos(heading_rad)
+
+        relative_coordinates.append((x_rot, y_rot))
+
+    return relative_coordinates
+
+# Calculate curvature given three points using a faster vector-based method
+def calculate_curvature(p1, p2, p3):
+    # Calculate vectors
+    v1 = (p2[0] - p1[0], p2[1] - p1[1])
+    v2 = (p3[0] - p2[0], p3[1] - p2[1])
+
+    # Calculate cross product (magnitude of the z-component for 2D vectors)
+    cross_product = v1[0] * v2[1] - v1[1] * v2[0]
+
+    # Calculate the lengths of the vectors
+    len_v1 = math.sqrt(v1[0]**2 + v1[1]**2)
+    len_v2 = math.sqrt(v2[0]**2 + v2[1]**2)
+
+    # Calculate the curvature as the sine of the angle between v1 and v2 divided by the product of their lengths
+    if len_v1 * len_v2 == 0:
+        return 0
+
+    curvature = cross_product / (len_v1 * len_v2 * len_v1)
+
+    return curvature
+
+
+
+
+
+
+################ CarrotNavi End..  
+
+
+
+
 import collections
 class CarrotServ:
   def __init__(self):
