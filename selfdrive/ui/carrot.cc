@@ -1793,6 +1793,8 @@ public:
     int     nRoadLimitSpeed = 30;
     int     xSpdLimit = 0;
     int     xSignType = -1;
+    QPointF nav_path_vertex[100];
+    int     nav_path_vertex_count = 0;
 
     void updateState(UIState *s) {
         const SubMaster& sm = *(s->sm);
@@ -1832,10 +1834,12 @@ public:
 
             QString naviPaths = QString::fromStdString(carrot_man.getNaviPaths());
             QStringList pairs = naviPaths.split(";");
+            nav_path_vertex_count = 0;
             foreach(const QString & pair, pairs) {
-                QStringList xy = pair.split(",");  // ","로 x와 y 구분
+                QStringList xy = pair.split(",");  // ","로 x와 y 구분                
                 if (xy.size() == 3) {
                     printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
+                    _model->mapToScreen(xy[0].toFloat(), xy[1].toFloat(), 0.5, &nav_path_vertex[nav_path_vertex_count++]);
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();
