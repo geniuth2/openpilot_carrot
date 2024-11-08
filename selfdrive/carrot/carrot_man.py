@@ -21,6 +21,8 @@ import cereal.messaging as messaging
 from cereal import log
 from common.numpy_fast import clip, interp
 from common.filter_simple import StreamingMovingAverage
+from opendbc.car import structs
+
 
 NetworkType = log.DeviceState.NetworkType
 
@@ -1365,6 +1367,7 @@ class CarrotServ:
 
     navi_paths = msg.carrotMan.naviPaths
     for i,(x,y) in enumerate(coords):
+      navi_paths[i] = structs.carrotMan.NaviPath()
       navi_paths[i].x = x
       navi_paths[i].y = y
 
