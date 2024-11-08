@@ -1831,6 +1831,11 @@ public:
             trafficState_carrot = carrot_man.getTrafficState();
             const auto velocity = model.getVelocity();
 
+            auto naviPaths = carrot_man.getNaviPaths();
+            for (auto const& c : naviPaths) {
+                printf("paths = %.1f, %.1f\n", c.getX(), c.getY());
+            }
+
             auto meta = sm["modelV2"].getModelV2().getMeta();
             QString desireLog = QString::fromStdString(meta.getDesireLog());
             sprintf(carrot_man_debug, "model_kph= %d, %s, %dkm/h TBT(%d): %dm, CAM(%d): %dkm/h, %dm, ATC(%s), T(%d)",

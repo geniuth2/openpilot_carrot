@@ -36,6 +36,12 @@ struct CarrotMan @0x81c2f05a394cf4af {
 	nGoPosDist @24 : Int32;
 	nGoPosTime @25 : Int32;
 	szSdiDescr @26 : Text;
+	naviPaths @27 : List(NaviPath);
+
+	struct NaviPath {
+		x @0: Float32;
+		y @1: Float32;
+	}
 }
 
 struct CustomReserved1 @0xaedffd8f31e7b55d {

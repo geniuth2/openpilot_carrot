@@ -259,8 +259,8 @@ class CarrotMan:
         vturn_speed = self.carrot_curve_speed(self.sm)
         coords, curvatures = self.carrot_navi_route()
         print("coords=", coords)
-        print("curvatures=", curvatures)
-        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed)
+        #print("curvatures=", curvatures)
+        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords)
 
         if frame % 20 == 0 or remote_addr is not None:
           try:
@@ -302,12 +302,12 @@ class CarrotMan:
     if len(self.navi_points) == 0:
       return
     index = 5
-    alpha = 0.9
+    alpha = 0.3
     current_position = (
         coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
         coordinates[index][1] * alpha + coordinates[index+1][1] * (1-alpha)
     )
-    heading_deg = 0
+    heading_deg = 270
 
     path, distances = get_path_after_distance(self.navi_points, current_position, 200)
     if path:
@@ -320,7 +320,6 @@ class CarrotMan:
           p3 = relative_coords[i + 2]
           curvature = calculate_curvature(p1, p2, p3)
           curvatures.append(curvature)
-        print("Curvatures:", curvatures)      
     else:
       relative_coords = []
       curvatures = []
@@ -1217,7 +1216,7 @@ class CarrotServ:
 
     return atc_desired, atc_type, atc_speed, atc_dist
 
-  def update_navi(self, remote_ip, sm, pm, vturn_speed):
+  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords):
 
     self.update_params()
     if sm.alive['carState'] and sm.alive['selfdriveState']:
@@ -1363,6 +1362,8 @@ class CarrotServ:
     msg.carrotMan.nGoPosDist = self.nGoPosDist
     msg.carrotMan.nGoPosTime = self.nGoPosTime
     msg.carrotMan.szSdiDescr = self._get_sdi_descr(self.nSdiType)
+
+    msg.carrotMan.naviPaths = coords
 
     pm.send('carrotMan', msg)
     
