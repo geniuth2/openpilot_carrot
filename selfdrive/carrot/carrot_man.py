@@ -309,7 +309,7 @@ class CarrotMan:
     )
     heading_deg = 0
 
-    path = get_path_after_distance(self.navi_points, current_position, 200)
+    path, distances = get_path_after_distance(self.navi_points, current_position, 200)
     if path:
       relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
       curvatures = []
