@@ -1367,7 +1367,7 @@ class CarrotServ:
 
     navi_paths = msg.carrotMan.naviPaths
     for i,(x,y) in enumerate(coords):
-      navi_paths[i] = structs.carrotMan.NaviPath()
+      navi_paths[i] = structs.CarrotMan.NaviPath()
       navi_paths[i].x = x
       navi_paths[i].y = y
 
