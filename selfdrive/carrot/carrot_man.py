@@ -60,6 +60,7 @@ def closest_point_on_segment(p1, p2, current_position):
 def get_path_after_distance(coordinates, current_position, distance_m):
     total_distance = 0
     path_after_distance = []
+    distances = []
 
     # Find the closest point on the path to the current position using segment projection
     closest_index = -1
@@ -74,19 +75,21 @@ def get_path_after_distance(coordinates, current_position, distance_m):
         if distance < min_distance:
             min_distance = distance
             closest_point = candidate_point
-            closest_index = i + 1
+            closest_index = i
 
     # Start from the closest point and calculate the path after the specified distance
     if closest_index != -1:
         # Always start with the closest point
-        total_distance = haversine(closest_point[0], closest_point[1], coordinates[closest_index][0], coordinates[closest_index][1])
-        path_after_distance.append(closest_point)
-        path_after_distance.append(coordinates[closest_index])
+        total_distance = haversine(current_position[0], current_position[1], coordinates[closest_index+1][0], coordinates[closest_index+1][1])
+        path_after_distance.append(current_position)
+        distances.append(0)
+        path_after_distance.append(coordinates[closest_index+1])
+        distances.append(total_distance)
 
         # Traverse the path and add points until the total distance exceeds distance_m
-        for i in range(closest_index + 1, len(coordinates)):
-            coord1 = coordinates[i - 1]
-            coord2 = coordinates[i]
+        for i in range(closest_index+1, len(coordinates) - 1):
+            coord1 = coordinates[i]
+            coord2 = coordinates[i + 1]
             segment_distance = haversine(coord1[0], coord1[1], coord2[0], coord2[1])
 
             if total_distance + segment_distance >= distance_m:
@@ -96,12 +99,14 @@ def get_path_after_distance(coordinates, current_position, distance_m):
                 interpolated_lon = coord1[0] + ratio * (coord2[0] - coord1[0])
                 interpolated_lat = coord1[1] + ratio * (coord2[1] - coord1[1])
                 path_after_distance.append((interpolated_lon, interpolated_lat))
+                distances.append(distance_m)
                 break
 
             total_distance += segment_distance
             path_after_distance.append(coord2)
+            distances.append(total_distance)
 
-    return path_after_distance
+    return path_after_distance, distances
 
 # Convert GPS coordinates to relative x, y coordinates based on a reference point and heading
 def gps_to_relative_xy(gps_path, reference_point, heading_deg):
@@ -146,6 +151,42 @@ def calculate_curvature(p1, p2, p3):
     return curvature
 
 ################ CarrotNavi End..  
+coordinates = [
+    (126.89837830486908, 37.08377355488109),
+    (126.89487584302313, 37.08365410348649),
+    (126.89523414046968, 37.08405405959305),
+    (126.89585630035148, 37.08475120529256),
+    (126.89589240785905, 37.08479008992155),
+    (126.89668399526681, 37.08567054886734),
+    (126.89681731523547, 37.08582053240114),
+    (126.89692563775787, 37.08593718628813),
+    (126.89697285540335, 37.085973293524496),
+    (126.89709228839595, 37.086051063061454),
+    (126.89720894401384, 37.08611216783246),
+    (126.89728949209872, 37.086137165432724),
+    (126.89738115032156, 37.08615938564038),
+    (126.89750891646084, 37.08617605114489),
+    (126.8975727995305, 37.08618438389713),
+    (126.89769778816722, 37.086198271926975),
+    (126.89775333867813, 37.086203827171744),
+    (126.89806164419515, 37.08621493882657),
+    (126.89852826876296, 37.08623160633359),
+    (126.89885601700239, 37.08623994064526),
+    (126.8994281876894, 37.08625105385986),
+    (126.90035588174379, 37.08628716630054),
+    (126.90073362541268, 37.086303833283026),
+    (126.90131968363839, 37.08632605641365),
+    (126.90180852840608, 37.08634550151152),
+    (126.90590815836022, 37.086512173251954),
+    (126.90913286742533, 37.08662884557906),
+    (126.9091412000097, 37.08662884562836),
+    (126.9091606427065, 37.086628845743434),
+    (126.90965782006009, 37.086648290893756),
+    (126.91008555923645, 37.08666495817502),
+    (126.91077438595349, 37.08669273683495),
+    (126.91008555923645, 37.08666495817502),
+    (126.90966059758819, 37.08664829091019)
+]
 
 
 class CarrotMan:
@@ -187,6 +228,7 @@ class CarrotMan:
 
     self.navi_points = []
 
+    self.navi_points = coordinates
 
   def get_broadcast_address(self):
     try:
@@ -215,6 +257,9 @@ class CarrotMan:
         remote_addr = self.remote_addr
         remote_ip = remote_addr[0] if remote_addr is not None else ""
         vturn_speed = self.carrot_curve_speed(self.sm)
+        coords, curvatures = self.carrot_navi_route()
+        print("coords=", coords)
+        print("curvatures=", curvatures)
         self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed)
 
         if frame % 20 == 0 or remote_addr is not None:
@@ -252,6 +297,36 @@ class CarrotMan:
         print(f"broadcast_version_info error...: {e}")
         traceback.print_exc()
         time.sleep(1)
+
+  def carrot_navi_route(self):
+    if len(self.navi_points) == 0:
+      return
+    index = 5
+    alpha = 0.9
+    current_position = (
+        coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
+        coordinates[index][1] * alpha + coordinates[index+1][1] * (1-alpha)
+    )
+    heading_deg = 0
+
+    path = get_path_after_distance(self.navi_points, current_position, 200)
+    if path:
+      relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
+      curvatures = []
+      if len(relative_coords) >= 3:        
+        for i in range(len(relative_coords) - 2):
+          p1 = relative_coords[i]
+          p2 = relative_coords[i + 1]
+          p3 = relative_coords[i + 2]
+          curvature = calculate_curvature(p1, p2, p3)
+          curvatures.append(curvature)
+        print("Curvatures:", curvatures)      
+    else:
+      relative_coords = []
+      curvatures = []
+      
+    return relative_coords, curvatures
+
 
   def make_send_message(self):
     msg = {}
@@ -349,72 +424,6 @@ class CarrotMan:
         self.remote_addr = None
         print(f"Network error, retrying...: {e}")
         time.sleep(2)
-
-  def carrot_man_thread_tcipip(self):
-    while True:
-      try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-          sock.settimeout(10)  # 소켓 타임아웃 설정 (10초)
-          sock.bind(('0.0.0.0', self.carrot_man_port))
-          sock.listen(5)
-          print("#########carrot_man_thread: thread started...")
-
-          while True:
-            self.connection = None
-            self.remote_addr = None
-            try:
-              self.connection, self.remote_addr = sock.accept()
-              print(self.remote_addr)
-
-              self.connection.settimeout(10)
-            
-              while self.remote_addr is not None:
-                try:
-                  length_data = self.connection.recv(4)
-                  if not length_data:
-                    raise ConnectionError("Connection closed")
-                  try:
-                    data_length = int(length_data.decode('utf-8'))
-                  except ValueError:
-                    raise ConnectionError("Received invalid data length")
-
-                  data = self.receive_fixed_length_data(self.connection, data_length)
-
-                  try:
-                    msg = self.make_send_message()
-                    length = len(msg)
-                    message = f"{length:04d}" + msg
-                    self.connection.send(message.encode('utf-8'))
-                  except Exception as e:
-                    print(f"carrot_man_thread: send error...: {e}")                    
-
-                  try:
-                    json_obj = json.loads(data.decode())
-                    self.carrot_serv.update(json_obj)
-                  except Exception as e:
-                    print(f"carrot_man_thread: json error...: {e}")
-                    print(data)
-
-                except socket.timeout:
-                  print("Waiting for data (timeout)...")
-                  time.sleep(1)
-                  break
-
-                except Exception as e:
-                  print(f"carrot_man_thread: error...: {e}")
-                  break
-
-            except Exception as e:
-              print(f"carrot_man_thread: accept error...: {e}")
-          
-            finally:
-              if self.connection:
-                self.connection.close()              
-
-            time.sleep(1)
-      except Exception as e:
-        print(f"Network error, retrying...: {e}")
-        time.sleep(5)  # 네트워크 오류 발생 시 5초 후 재시도
       
   def make_tmux_data(self):
     try:
