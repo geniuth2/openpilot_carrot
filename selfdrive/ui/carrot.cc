@@ -1834,8 +1834,8 @@ public:
             QStringList pairs = naviPaths.split(";");
             foreach(const QString & pair, pairs) {
                 QStringList xy = pair.split(",");  // ","로 x와 y 구분
-                if (xy.size() == 2) {
-                    printf("coords = x: %.1f, y: %.1f\n", xy[0].toFloat(), xy[1].toFloat());
+                if (xy.size() == 3) {
+                    printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();

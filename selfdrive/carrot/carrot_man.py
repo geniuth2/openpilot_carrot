@@ -259,10 +259,10 @@ class CarrotMan:
         remote_addr = self.remote_addr
         remote_ip = remote_addr[0] if remote_addr is not None else ""
         vturn_speed = self.carrot_curve_speed(self.sm)
-        coords, curvatures = self.carrot_navi_route()
+        coords, distances, curvatures = self.carrot_navi_route()
         print("coords=", coords)
         #print("curvatures=", curvatures)
-        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords)
+        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances)
 
         if frame % 20 == 0 or remote_addr is not None:
           try:
@@ -326,7 +326,7 @@ class CarrotMan:
       relative_coords = []
       curvatures = []
       
-    return relative_coords, curvatures
+    return relative_coords, distances, curvatures
 
 
   def make_send_message(self):
@@ -1218,7 +1218,7 @@ class CarrotServ:
 
     return atc_desired, atc_type, atc_speed, atc_dist
 
-  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords):
+  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords, distances):
 
     self.update_params()
     if sm.alive['carState'] and sm.alive['selfdriveState']:
@@ -1366,7 +1366,7 @@ class CarrotServ:
     msg.carrotMan.szSdiDescr = self._get_sdi_descr(self.nSdiType)
 
     #coords_str = ";".join([f"{x},{y}" for x, y in coords])
-    coords_str = ";".join([f"{x:.2f},{y:.2f}" for x, y in coords])
+    coords_str = ";".join([f"{x:.2f},{y:.2f},{d:.2f}" for (x, y), d in zip(coords, distances)])
     msg.carrotMan.naviPaths = coords_str
 
     pm.send('carrotMan', msg)
