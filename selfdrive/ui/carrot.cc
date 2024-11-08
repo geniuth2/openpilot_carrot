@@ -1839,7 +1839,7 @@ public:
                 QStringList xy = pair.split(",");  // ","로 x와 y 구분                
                 if (xy.size() == 3) {
                     printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
-                    _model->mapToScreen(xy[0].toFloat(), xy[1].toFloat(), 1.22, &nav_path_vertex[nav_path_vertex_count++]);
+                    _model->mapToScreen((nav_path_vertex_count==0)?5:xy[0].toFloat(), xy[1].toFloat(), 1.22, &nav_path_vertex[nav_path_vertex_count++]);
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();
