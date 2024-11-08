@@ -1896,7 +1896,7 @@ public:
                 printf("nav_path_vertex[%d] = %.1f, %.1f\n", i, nav_path_vertex[i].x(), nav_path_vertex[i].y());
 			}
 			nvgStrokeColor(s->vg, COLOR_GREEN_ALPHA(200));
-			nvgStrokeWidth(s->vg, 2.0f);
+			nvgStrokeWidth(s->vg, 10.0f);
 			nvgStroke(s->vg);
 		}
     }
