@@ -1839,8 +1839,8 @@ public:
                 QStringList xy = pair.split(",");  // ","로 x와 y 구분                
                 if (xy.size() == 3) {
                     //printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
-                    x = xy[0].toFloat();
-                    y = xy[1].toFloat();
+                    float x = xy[0].toFloat();
+                    float y = xy[1].toFloat();
                     //d = xy[2].toFloat();
                     _model->mapToScreen((x<3.0) ? 5.0 : x, y, 1.22, &nav_path_vertex[nav_path_vertex_count++]);
                 }
