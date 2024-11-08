@@ -80,14 +80,16 @@ def get_path_after_distance(coordinates, current_position, distance_m):
     # Start from the closest point and calculate the path after the specified distance
     if closest_index != -1:
         # Always start with the closest point
-        total_distance = haversine(current_position[0], current_position[1], coordinates[closest_index+1][0], coordinates[closest_index+1][1])
-        path_after_distance.append(current_position)
+        path_after_distance.append(closest_point)
         distances.append(0)
-        path_after_distance.append(coordinates[closest_index+1])
+
+        # Include the next point as well to continue from the current segment
+        path_after_distance.append(coordinates[closest_index + 1])
+        total_distance = haversine(closest_point[0], closest_point[1], coordinates[closest_index + 1][0], coordinates[closest_index + 1][1])
         distances.append(total_distance)
 
-        # Traverse the path and add points until the total distance exceeds distance_m
-        for i in range(closest_index+1, len(coordinates) - 1):
+        # Traverse the path forward from the next point
+        for i in range(closest_index + 1, len(coordinates) - 1):
             coord1 = coordinates[i]
             coord2 = coordinates[i + 1]
             segment_distance = haversine(coord1[0], coord1[1], coord2[0], coord2[1])
@@ -125,7 +127,7 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
         x_rot = x * math.cos(heading_rad) - y * math.sin(heading_rad)
         y_rot = x * math.sin(heading_rad) + y * math.cos(heading_rad)
 
-        relative_coordinates.append((x_rot, y_rot))
+        relative_coordinates.append((y_rot, x_rot))
 
     return relative_coordinates
 
