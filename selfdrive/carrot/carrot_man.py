@@ -21,7 +21,7 @@ import cereal.messaging as messaging
 from cereal import log
 from common.numpy_fast import clip, interp
 from common.filter_simple import StreamingMovingAverage
-from opendbc.car import structs
+from cereal.custom.capnp import structs
 
 
 NetworkType = log.DeviceState.NetworkType
