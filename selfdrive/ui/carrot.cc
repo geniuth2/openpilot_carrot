@@ -1882,6 +1882,18 @@ public:
             ui_draw_text(s, s->fb_w, s->fb_h - 10, carrot_man_debug, 35, COLOR_WHITE, BOLD, 1.0f, 1.0f);
         }
     }
+    void drawNaviPath(UIState* s) {
+        if (nav_path_vertex_count > 0) {
+			nvgBeginPath(s->vg);
+			nvgMoveTo(s->vg, nav_path_vertex[0].x(), nav_path_vertex[0].y());
+			for (int i = 1; i < nav_path_vertex_count; i++) {
+				nvgLineTo(s->vg, nav_path_vertex[i].x(), nav_path_vertex[i].y());
+			}
+			nvgStrokeColor(s->vg, COLOR_GREEN_ALPHA(200));
+			nvgStrokeWidth(s->vg, 2.0f);
+			nvgStroke(s->vg);
+		}
+    }
     char    cruise_speed_last[32] = "";
     char    driving_mode_str_last[32] = "";
     int     gap_last = 0;
@@ -1892,6 +1904,7 @@ public:
     int   memoryUsage = 0;
     float freeSpace = 0.0f;
     void drawHud(UIState* s) {
+        drawNaviPath(s);
         blink_timer = (blink_timer + 1) % 16;
         nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
 
