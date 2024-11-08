@@ -420,8 +420,8 @@ def create_adrv_messages(CP, packer, CAN, frame, CC, CS, hud_control):
           values["CRUISE_INFO9_HWAY_SET2_ELSE_0"] = 0
           #values["NEW_SIGNAL_HWAY_SET1_ELSE_0"] = 1
 
-          values["CRUISE_INFO10_0_TO_4"] = 4 if main_enabled else 0
-          values["CRUISE_INFO11_0_TO_1"] = 1 if cruise_enabled else 0
+          #values["CRUISE_INFO10_0_TO_4"] = 4 if main_enabled else 0      # message
+          #values["CRUISE_INFO11_0_TO_1"] = 1 if cruise_enabled else 0    # message
           values["143_SET_0"] = 0
 
           ret.append(packer.make_can_msg("ADRV_0x161", CAN.ECAN, values))
