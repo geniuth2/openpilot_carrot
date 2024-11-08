@@ -309,7 +309,7 @@ class CarrotMan:
     )
     heading_deg = 270
 
-    path, distances = get_path_after_distance(self.navi_points, current_position, 200)
+    path, distances = get_path_after_distance(coordinates, current_position, 200)
     if path:
       relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
       curvatures = []
@@ -1363,7 +1363,8 @@ class CarrotServ:
     msg.carrotMan.nGoPosTime = self.nGoPosTime
     msg.carrotMan.szSdiDescr = self._get_sdi_descr(self.nSdiType)
 
-    coords_str = ";".join([f"{x},{y}" for x, y in coords])
+    #coords_str = ";".join([f"{x},{y}" for x, y in coords])
+    coords_str = ";".join([f"{x:.2f},{y:.2f}" for x, y in coords])
     msg.carrotMan.naviPaths = coords_str
 
     pm.send('carrotMan', msg)
