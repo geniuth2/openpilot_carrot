@@ -301,7 +301,7 @@ class CarrotMan:
   def carrot_navi_route(self):
     if len(self.navi_points) == 0:
       return
-    index = 5
+    index = 0
     alpha = 0.3
     current_position = (
         coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
