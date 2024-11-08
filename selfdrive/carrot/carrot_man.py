@@ -302,7 +302,7 @@ class CarrotMan:
 
   def carrot_navi_route(self):
     if len(self.navi_points) == 0:
-      return
+      return [],[],[]
     #index = 0
     #alpha = 0.3
     #current_position = (
