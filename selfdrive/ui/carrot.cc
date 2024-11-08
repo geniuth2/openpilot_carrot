@@ -1794,7 +1794,6 @@ public:
     int     xSpdLimit = 0;
     int     xSignType = -1;
 
-
     void updateState(UIState *s) {
         const SubMaster& sm = *(s->sm);
         const bool cs_alive = sm.alive("carState");
@@ -1831,11 +1830,14 @@ public:
             trafficState_carrot = carrot_man.getTrafficState();
             const auto velocity = model.getVelocity();
 
-            auto naviPaths = carrot_man.getNaviPaths();
-            for (auto const& c : naviPaths) {
-                printf("paths = %.1f, %.1f\n", c.getX(), c.getY());
+            QString naviPaths = QString::fromStdString(carrot_man.getNaviPaths());
+            QStringList pairs = naviPaths.split(";");
+            foreach(const QString & pair, pairs) {
+                QStringList xy = pair.split(",");  // ","로 x와 y 구분
+                if (xy.size() == 2) {
+                    printf("coords = x: %.1f, y: %.1f\n", xy[0].toFloat(), xy[1].toFloat());
+                }
             }
-
             auto meta = sm["modelV2"].getModelV2().getMeta();
             QString desireLog = QString::fromStdString(meta.getDesireLog());
             sprintf(carrot_man_debug, "model_kph= %d, %s, %dkm/h TBT(%d): %dm, CAM(%d): %dkm/h, %dm, ATC(%s), T(%d)",

@@ -21,8 +21,6 @@ import cereal.messaging as messaging
 from cereal import log
 from common.numpy_fast import clip, interp
 from common.filter_simple import StreamingMovingAverage
-from cereal import custom,structs
-
 
 NetworkType = log.DeviceState.NetworkType
 
@@ -1365,11 +1363,8 @@ class CarrotServ:
     msg.carrotMan.nGoPosTime = self.nGoPosTime
     msg.carrotMan.szSdiDescr = self._get_sdi_descr(self.nSdiType)
 
-    navi_paths = msg.carrotMan.naviPaths
-    for i,(x,y) in enumerate(coords):
-      navi_paths[i] = structs.CarrotMan.NaviPath()
-      navi_paths[i].x = x
-      navi_paths[i].y = y
+    coords_str = ";".join([f"{x},{y}" for x, y in coords])
+    msg.carrotMan.naviPaths = coords_str
 
     pm.send('carrotMan', msg)
     
