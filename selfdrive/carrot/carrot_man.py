@@ -1082,11 +1082,11 @@ class CarrotServ:
     CC = sm['carControl']
     if len(CC.orientationNED) == 3:
       bearing = math.degrees(CC.orientationNED[2])
-      print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}, nPosAngle={:.1f}, offset={:.1f}".format(CC.orientationNED[2], bearing, self.nPosAngle, self.bearing_offset))
+      #print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}, nPosAngle={:.1f}, offset={:.1f}".format(CC.orientationNED[2], bearing, self.nPosAngle, self.bearing_offset))
       location_valid = False
       # self.bearing_offset = 0.0
     else:
-      print("CC.orientationNED[2] is not valid = {}".format(CC.orientationNED))
+      #print("CC.orientationNED[2] is not valid = {}".format(CC.orientationNED))
       location_valid = False
       bearing = 0.0
       return self.nPosAngle
