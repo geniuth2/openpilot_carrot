@@ -1288,7 +1288,7 @@ class CarrotServ:
     if len(route_speeds) > 0:
       print(route_speeds)
     for dist, speed in zip(distances, route_speeds):
-      speed_n_sources.append(self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route")
+      speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
 
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])
 
