@@ -1842,7 +1842,7 @@ public:
                     float x = xy[0].toFloat();
                     float y = xy[1].toFloat();
                     //d = xy[2].toFloat();
-                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, 0.2, &nav_path_vertex[nav_path_vertex_count++]);
+                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, 1.22, &nav_path_vertex[nav_path_vertex_count++]);
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();
