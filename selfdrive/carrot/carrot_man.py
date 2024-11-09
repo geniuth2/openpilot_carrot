@@ -1257,7 +1257,7 @@ class CarrotServ:
       delta_dist = 0
       CS = None
       
-    #bearing = self.nPosAngle #self._update_gps(v_ego, sm)
+    self.bearing = self.nPosAngle #self._update_gps(v_ego, sm)
     #self.bearing = self._update_gps(v_ego, sm)
 
     self.xSpdDist = max(self.xSpdDist - delta_dist, 0)
@@ -1458,7 +1458,8 @@ class CarrotServ:
     if "carrotIndex" in json:
       self.carrotIndex = int(json.get("carrotIndex"))
     if "bearing" in json:
-      self.bearing = float(json.get("bearing"))
+      #self.bearing = float(json.get("bearing"))
+      pass
 
     if self.carrotIndex % 60 == 0 and "epochTime" in json:
       # op는 ntp를 사용하기때문에... 필요없는 루틴으로 보임.
