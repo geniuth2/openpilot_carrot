@@ -57,7 +57,7 @@ def closest_point_on_segment(p1, p2, current_position):
 
 # Get path after a certain distance from the current position
 # Including interpolated point at the exact distance_m location
-def get_path_after_distance(coordinates, current_position, distance_m):
+def get_path_after_distance(start_index, coordinates, current_position, distance_m):
     total_distance = 0
     path_after_distance = []
     distances = []
@@ -67,7 +67,7 @@ def get_path_after_distance(coordinates, current_position, distance_m):
     closest_point = None
     min_distance = float('inf')
 
-    for i in range(len(coordinates) - 1):
+    for i in range(start_index, len(coordinates) - 1):
         p1 = coordinates[i]
         p2 = coordinates[i + 1]
         candidate_point = closest_point_on_segment(p1, p2, current_position)
@@ -76,7 +76,10 @@ def get_path_after_distance(coordinates, current_position, distance_m):
             min_distance = distance
             closest_point = candidate_point
             closest_index = i
+        elif distance > min_distance and min_distance < 10:
+          break
 
+    start_index = closest_index
     # Start from the closest point and calculate the path after the specified distance
     if closest_index != -1:
         # Always start with the closest point
@@ -108,7 +111,7 @@ def get_path_after_distance(coordinates, current_position, distance_m):
             path_after_distance.append(coord2)
             distances.append(total_distance)
 
-    return path_after_distance, distances
+    return path_after_distance, distances, start_index
 
 # Convert GPS coordinates to relative x, y coordinates based on a reference point and heading
 def gps_to_relative_xy(gps_path, reference_point, heading_deg):
@@ -229,6 +232,7 @@ class CarrotMan:
     threading.Thread(target=self.broadcast_version_info).start()
 
     self.navi_points = []
+    self.navi_points_start_index = 0
 
     #self.navi_points = coordinates
 
@@ -313,7 +317,7 @@ class CarrotMan:
     current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
     heading_deg = self.carrot_serv.nPosAngle
 
-    path, distances = get_path_after_distance(self.navi_points, current_position, 200)
+    path, distances, self.navi_points_start_index = get_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
     if path:
       relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
       curvatures = []
@@ -620,7 +624,7 @@ class CarrotMan:
               #coord = Coordinate.from_mapbox_tuple((x, y))
               #points.append(coord)
             #coords = [c.as_dict() for c in points]
-         
+            self.navi_points_start_index = 0
             print("Received points:", len(self.navi_points))
             #print("Received points:", self.navi_points)
 
