@@ -1327,8 +1327,8 @@ class CarrotServ:
       (sdi_speed, "hda" if hda_active else "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
       (abs(vturn_speed), "vturn"),
     ]
-    if len(route_speeds) > 0:
-      print(" ".join(str(round(speed, 1)) for speed in route_speeds))
+    #if len(route_speeds) > 0:
+    #  print(" ".join(str(round(speed, 1)) for speed in route_speeds))
     #for dist, speed in zip(distances, route_speeds):
     #  speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
 
@@ -1459,6 +1459,8 @@ class CarrotServ:
       self.carrotIndex = int(json.get("carrotIndex"))
     if "bearing" in json:
       #self.bearing = float(json.get("bearing"))
+      bearing = float(json.get("bearing"))
+      print("bearing={:.1f}, {}".format(bearing, self.nPosAngle))
       pass
 
     if self.carrotIndex % 60 == 0 and "epochTime" in json:
