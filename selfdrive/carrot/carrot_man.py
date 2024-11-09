@@ -223,7 +223,7 @@ class CarrotMan:
         remote_ip = remote_addr[0] if remote_addr is not None else ""
         vturn_speed = self.carrot_curve_speed(self.sm)
         coords, distances, curvatures = self.carrot_navi_route()
-        print("coords=", coords)
+        #print("coords=", coords)
         #print("curvatures=", curvatures)
         self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances)
 
