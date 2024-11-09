@@ -29,6 +29,7 @@ NetworkType = log.DeviceState.NetworkType
 V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
 V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
 #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
+
 # Haversine formula to calculate distance between two GPS coordinates
 haversine_cache = {}
 def haversine(lon1, lat1, lon2, lat2):
@@ -121,6 +122,47 @@ def get_path_after_distance(start_index, coordinates, current_position, distance
 
     return path_after_distance, distances, start_index
 
+def calculate_angle(point1, point2):
+    delta_lon = point2[0] - point1[0]
+    delta_lat = point2[1] - point1[1]
+    return math.degrees(math.atan2(delta_lat, delta_lon))
+
+def smooth_path(path_after_distance, smooth_factor=0.2):
+    smoothed_path = []
+    n = len(path_after_distance)
+    if n == 0:
+        return smoothed_path
+
+    smoothed_path.append(path_after_distance[0])  # 첫 번째 포인트는 그대로 추가
+
+    for i in range(1, n - 1):
+        prev_point = path_after_distance[i - 1]
+        current_point = path_after_distance[i]
+        next_point = path_after_distance[i + 1]
+
+        # 이전, 현재 포인트 사이의 각도와 현재, 다음 포인트 사이의 각도 계산
+        angle_prev = calculate_angle(prev_point, current_point)
+        angle_next = calculate_angle(current_point, next_point)
+
+        # 각도가 45도 이하인 경우에만 smoothing 적용
+        if abs(angle_next - angle_prev) <= 45:
+            smoothed_lon = (prev_point[0] + smooth_factor * current_point[0] + next_point[0]) / (2 + smooth_factor)
+            smoothed_lat = (prev_point[1] + smooth_factor * current_point[1] + next_point[1]) / (2 + smooth_factor)
+            smoothed_path.append((smoothed_lon, smoothed_lat))
+        else:
+            smoothed_path.append(current_point)
+
+    smoothed_path.append(path_after_distance[-1])  # 마지막 포인트는 그대로 추가
+
+    return smoothed_path
+
+# 경로 데이터를 가져와 smoothing 적용
+def get_smoothed_path_after_distance(start_index, coordinates, current_position, distance_m, smooth_factor=0.2):
+    path_after_distance, distances, start_index = get_path_after_distance(start_index, coordinates, current_position,
+                                                                          distance_m)
+    smoothed_path = smooth_path(path_after_distance, smooth_factor)
+    return smoothed_path, distances, start_index
+
 # Convert GPS coordinates to relative x, y coordinates based on a reference point and heading
 def gps_to_relative_xy(gps_path, reference_point, heading_deg):
     ref_lon, ref_lat = reference_point
@@ -145,40 +187,23 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
 # Calculate curvature given three points using a faster vector-based method
 curvature_cache = {}
 
-def smooth_path_moving_average(path, window_size=3):
-    """Apply moving average to smooth out the path."""
-    smoothed_path = []
-    for i in range(len(path)):
-        lon_avg = sum(p[0] for p in path[max(0, i - window_size):i + 1]) / (i - max(0, i - window_size) + 1)
-        lat_avg = sum(p[1] for p in path[max(0, i - window_size):i + 1]) / (i - max(0, i - window_size) + 1)
-        smoothed_path.append((lon_avg, lat_avg))
-    return smoothed_path
-
-def calculate_curvature(p1, p2, p3, max_curvature=0.1):
-    """Calculate curvature with caching and clipping."""
+def calculate_curvature(p1, p2, p3):
     key = (p1, p2, p3)
     if key in curvature_cache:
         return curvature_cache[key]
 
-    # Calculate vectors
     v1 = (p2[0] - p1[0], p2[1] - p1[1])
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
 
-    # Cross product and vector lengths
     cross_product = v1[0] * v2[1] - v1[1] * v2[0]
-    len_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
-    len_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
+    len_v1 = math.sqrt(v1[0]**2 + v1[1]**2)
+    len_v2 = math.sqrt(v2[0]**2 + v2[1]**2)
 
-    # Calculate curvature
     if len_v1 * len_v2 == 0:
         curvature = 0
     else:
         curvature = cross_product / (len_v1 * len_v2 * len_v1)
 
-    # Clip the curvature value to the maximum allowed curvature
-    curvature = min(curvature, max_curvature)
-
-    # Cache and return
     curvature_cache[key] = curvature
     return curvature
 
@@ -311,7 +336,7 @@ class CarrotMan:
     current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
     heading_deg = self.carrot_serv.bearing
 
-    path, distances, self.navi_points_start_index = get_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
+    path, distances, self.navi_points_start_index = get_smoothed_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
     if path:
       relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
       curvatures = []
