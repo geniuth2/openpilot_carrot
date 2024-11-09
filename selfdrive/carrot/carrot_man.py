@@ -1078,7 +1078,7 @@ class CarrotServ:
     CC = sm['carControl']
     if len(CC.orientationNED) == 3:
       bearing = math.degrees(CC.orientationNED[2])
-      print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}".format(CC.orientationNED[2], bearing))
+      print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}, nPosAngle={:.1f}, offset={:.1f}".format(CC.orientationNED[2], bearing, self.nPosAngle, self.bearing_offset))
       location_valid = False
       # self.bearing_offset = 0.0
     else:
@@ -1098,10 +1098,10 @@ class CarrotServ:
           self.diff_angle_count += 1
         else:
           self.diff_angle_count = 0
-        print("{:.1f} bearing_diff[{}] = {:.1f} = {:.1f} - {:.1f}, v={:.1f},st={:.1f}".format(self.bearing_offset, self.diff_angle_count, diff_angle, self.nPosAngle, bearing, CS.vEgo*3.6, CS.steeringAngleDeg))
+        #print("{:.1f} bearing_diff[{}] = {:.1f} = {:.1f} - {:.1f}, v={:.1f},st={:.1f}".format(self.bearing_offset, self.diff_angle_count, diff_angle, self.nPosAngle, bearing, CS.vEgo*3.6, CS.steeringAngleDeg))
         if self.diff_angle_count > 2:
           self.bearing_offset = self.nPosAngle - bearing
-          print("bearing_offset = {:.1f} = {:.1f} - {:.1f}".format(self.bearing_offset, self.nPosAngle, bearing))
+          #print("bearing_offset = {:.1f} = {:.1f} - {:.1f}".format(self.bearing_offset, self.nPosAngle, bearing))
       #n초 통신 지연시간이 있다고 가정하고 좀더 진행한것으로 처리함.
       dt = 0 #(unix_now - timeStamp / 1000.) if timeStamp > 0 else 0.1
       dt += 0.2  #가상으로 0.5초만큼 더 진행한것으로 
