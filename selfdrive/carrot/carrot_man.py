@@ -1286,7 +1286,7 @@ class CarrotServ:
       (abs(vturn_speed), "vturn"),
     ]
     if len(route_speeds) > 0:
-      print(route_speeds)
+      print(" ".join(str(round(speed, 1)) for speed in route_speeds))
     for dist, speed in zip(distances, route_speeds):
       speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
 
