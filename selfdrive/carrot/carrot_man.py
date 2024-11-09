@@ -155,50 +155,11 @@ def calculate_curvature(p1, p2, p3):
 
     return curvature
 
-################ CarrotNavi End..  
-coordinates = [
-    (126.89837830486908, 37.08377355488109),
-    (126.89487584302313, 37.08365410348649),
-    (126.89523414046968, 37.08405405959305),
-    (126.89585630035148, 37.08475120529256),
-    (126.89589240785905, 37.08479008992155),
-    (126.89668399526681, 37.08567054886734),
-    (126.89681731523547, 37.08582053240114),
-    (126.89692563775787, 37.08593718628813),
-    (126.89697285540335, 37.085973293524496),
-    (126.89709228839595, 37.086051063061454),
-    (126.89720894401384, 37.08611216783246),
-    (126.89728949209872, 37.086137165432724),
-    (126.89738115032156, 37.08615938564038),
-    (126.89750891646084, 37.08617605114489),
-    (126.8975727995305, 37.08618438389713),
-    (126.89769778816722, 37.086198271926975),
-    (126.89775333867813, 37.086203827171744),
-    (126.89806164419515, 37.08621493882657),
-    (126.89852826876296, 37.08623160633359),
-    (126.89885601700239, 37.08623994064526),
-    (126.8994281876894, 37.08625105385986),
-    (126.90035588174379, 37.08628716630054),
-    (126.90073362541268, 37.086303833283026),
-    (126.90131968363839, 37.08632605641365),
-    (126.90180852840608, 37.08634550151152),
-    (126.90590815836022, 37.086512173251954),
-    (126.90913286742533, 37.08662884557906),
-    (126.9091412000097, 37.08662884562836),
-    (126.9091606427065, 37.086628845743434),
-    (126.90965782006009, 37.086648290893756),
-    (126.91008555923645, 37.08666495817502),
-    (126.91077438595349, 37.08669273683495),
-    (126.91008555923645, 37.08666495817502),
-    (126.90966059758819, 37.08664829091019)
-]
-
-
 class CarrotMan:
   def __init__(self):
     self.params = Params()
     self.params_memory = Params("/dev/shm/params")
-    self.sm = messaging.SubMaster(['deviceState', 'carState', 'controlsState', 'longitudinalPlan', 'modelV2', 'selfdriveState'])
+    self.sm = messaging.SubMaster(['deviceState', 'carState', 'controlsState', 'longitudinalPlan', 'modelV2', 'selfdriveState', 'carControl'])
     self.pm = messaging.PubMaster(['carrotMan'])
 
     self.carrot_serv = CarrotServ()
@@ -233,8 +194,6 @@ class CarrotMan:
 
     self.navi_points = []
     self.navi_points_start_index = 0
-
-    #self.navi_points = coordinates
 
   def get_broadcast_address(self):
     try:
@@ -315,7 +274,7 @@ class CarrotMan:
     #)
     #heading_deg = 270
     current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
-    heading_deg = self.carrot_serv.nPosAngle
+    heading_deg = self.carrot_serv.bearing
 
     path, distances, self.navi_points_start_index = get_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
     if path:
@@ -340,7 +299,7 @@ class CarrotMan:
     msg['Carrot'] = self.params.get("Version").decode('utf-8')
     isOnroad = self.params.get_bool("IsOnroad")
     msg['IsOnroad'] = isOnroad
-    msg['CarrotRouteActive'] = False #self.params.get_bool("CarrotRouteActive")
+    msg['CarrotRouteActive'] = True if len(self.navi_points) > 0 else False
     msg['ip'] = self.ip_address
     msg['port'] = self.carrot_man_port
     self.controls_active = False
@@ -773,6 +732,7 @@ class CarrotServ:
     self.last_update_gps_time = 0
     self.last_calculate_gps_time = 0
     self.bearing_offset = 0.0
+    self.bearing = 0.0
     
     self.totalDistance = 0
     self.xSpdLimit = 0
@@ -1112,12 +1072,12 @@ class CarrotServ:
       self.xSpdDist = 0
 
   def _update_gps(self, v_ego, sm):
-    if not sm.updated['carState'] or not sm.updated['liveLocationKalman']:
+    if not sm.updated['carState'] or not sm.updated['carControl']:
       return 0.0
     CS = sm['carState']
-    location = sm['liveLocationKalman']
-    bearing = math.degrees(location.calibratedOrientationNED.value[2])
-    if (location.status == log.LiveLocationKalman.Status.valid) and location.positionGeodetic.valid and location.gpsOK:            
+    CC = sm['carControl']
+    if CC.orientationNED == 3:
+      bearing = math.degrees(CC.orientationNED[2])
       location_valid = True
       self.bearing_offset = 0.0
     else:
@@ -1239,7 +1199,8 @@ class CarrotServ:
       delta_dist = 0
       CS = None
       
-    bearing = self.nPosAngle #self._update_gps(v_ego, sm)
+    #bearing = self.nPosAngle #self._update_gps(v_ego, sm)
+    self.bearing = self._update_gps(v_ego, sm)
 
     self.xSpdDist = max(self.xSpdDist - delta_dist, 0)
     self.xDistToTurn = max(self.xDistToTurn - delta_dist, 0)
@@ -1363,7 +1324,7 @@ class CarrotServ:
     msg.carrotMan.trafficState = self.traffic_state
 
     msg.carrotMan.xPosSpeed = float(self.nPosSpeed)
-    msg.carrotMan.xPosAngle = float(bearing)
+    msg.carrotMan.xPosAngle = float(self.bearing)
     msg.carrotMan.xPosLat = float(self.vpPosPointLat)
     msg.carrotMan.xPosLon = float(self.vpPosPointLon)
 
