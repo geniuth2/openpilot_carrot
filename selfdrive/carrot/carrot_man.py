@@ -139,24 +139,26 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
     return relative_coordinates
 
 # Calculate curvature given three points using a faster vector-based method
+curvature_cache = {}
+
 def calculate_curvature(p1, p2, p3):
-    # Calculate vectors
+    key = (p1, p2, p3)
+    if key in curvature_cache:
+        return curvature_cache[key]
+
     v1 = (p2[0] - p1[0], p2[1] - p1[1])
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
 
-    # Calculate cross product (magnitude of the z-component for 2D vectors)
     cross_product = v1[0] * v2[1] - v1[1] * v2[0]
-
-    # Calculate the lengths of the vectors
     len_v1 = math.sqrt(v1[0]**2 + v1[1]**2)
     len_v2 = math.sqrt(v2[0]**2 + v2[1]**2)
 
-    # Calculate the curvature as the sine of the angle between v1 and v2 divided by the product of their lengths
     if len_v1 * len_v2 == 0:
-        return 0
+        curvature = 0
+    else:
+        curvature = cross_product / (len_v1 * len_v2 * len_v1)
 
-    curvature = cross_product / (len_v1 * len_v2 * len_v1)
-
+    curvature_cache[key] = curvature
     return curvature
 
 class CarrotMan:
@@ -252,6 +254,7 @@ class CarrotMan:
 
             if remote_addr is None:
               print(f"Broadcasting: {self.broadcast_ip}:{msg}")
+              self.navi_points = []
             
           except Exception as e:
             if self.connection:
@@ -269,6 +272,8 @@ class CarrotMan:
 
   def carrot_navi_route(self):
     if len(self.navi_points) == 0:
+      haversine_cache.clear()
+      curvature_cache.clear()
       return [],[],[]
     #index = 0
     #alpha = 0.3
