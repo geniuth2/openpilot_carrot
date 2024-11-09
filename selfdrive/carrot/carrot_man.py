@@ -1083,6 +1083,7 @@ class CarrotServ:
     else:
       location_valid = False
       breaing = 0.0
+      return 0.0
 
     now = time.monotonic()
     if self.active_sdi_count > self.active_sdi_count_max - 3:
