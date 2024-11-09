@@ -2238,6 +2238,7 @@ public:
                 cpuUsage += cpuUsagePercent[cpu_size];
             }
             if (cpu_size > 0) cpuUsage /= cpu_size;
+            printf("cpuUsage: %.1f\n", cpuUsage);
         }
     }
     void drawDeviceInfo(const UIState* s) {
