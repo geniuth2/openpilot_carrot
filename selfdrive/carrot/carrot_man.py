@@ -145,23 +145,40 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
 # Calculate curvature given three points using a faster vector-based method
 curvature_cache = {}
 
-def calculate_curvature(p1, p2, p3):
+def smooth_path_moving_average(path, window_size=3):
+    """Apply moving average to smooth out the path."""
+    smoothed_path = []
+    for i in range(len(path)):
+        lon_avg = sum(p[0] for p in path[max(0, i - window_size):i + 1]) / (i - max(0, i - window_size) + 1)
+        lat_avg = sum(p[1] for p in path[max(0, i - window_size):i + 1]) / (i - max(0, i - window_size) + 1)
+        smoothed_path.append((lon_avg, lat_avg))
+    return smoothed_path
+
+def calculate_curvature(p1, p2, p3, max_curvature=0.1):
+    """Calculate curvature with caching and clipping."""
     key = (p1, p2, p3)
     if key in curvature_cache:
         return curvature_cache[key]
 
+    # Calculate vectors
     v1 = (p2[0] - p1[0], p2[1] - p1[1])
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
 
+    # Cross product and vector lengths
     cross_product = v1[0] * v2[1] - v1[1] * v2[0]
-    len_v1 = math.sqrt(v1[0]**2 + v1[1]**2)
-    len_v2 = math.sqrt(v2[0]**2 + v2[1]**2)
+    len_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+    len_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
 
+    # Calculate curvature
     if len_v1 * len_v2 == 0:
         curvature = 0
     else:
         curvature = cross_product / (len_v1 * len_v2 * len_v1)
 
+    # Clip the curvature value to the maximum allowed curvature
+    curvature = min(curvature, max_curvature)
+
+    # Cache and return
     curvature_cache[key] = curvature
     return curvature
 
