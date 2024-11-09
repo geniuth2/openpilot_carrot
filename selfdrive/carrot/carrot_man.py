@@ -1082,7 +1082,7 @@ class CarrotServ:
       self.bearing_offset = 0.0
     else:
       location_valid = False
-      breaing = 0.0
+      bearing = 0.0
       return 0.0
 
     now = time.monotonic()
