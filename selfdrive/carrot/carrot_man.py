@@ -1073,17 +1073,17 @@ class CarrotServ:
 
   def _update_gps(self, v_ego, sm):
     if not sm.updated['carState'] or not sm.updated['carControl']:
-      return 0.0
+      return self.nPosAngle
     CS = sm['carState']
     CC = sm['carControl']
-    if CC.orientationNED == 3:
+    if len(CC.orientationNED) == 3:
       bearing = math.degrees(CC.orientationNED[2])
       location_valid = True
       self.bearing_offset = 0.0
     else:
       location_valid = False
       bearing = 0.0
-      return 0.0
+      return self.nPosAngle
 
     now = time.monotonic()
     if self.active_sdi_count > self.active_sdi_count_max - 3:
