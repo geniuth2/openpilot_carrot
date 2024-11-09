@@ -25,6 +25,10 @@ from common.filter_simple import StreamingMovingAverage
 NetworkType = log.DeviceState.NetworkType
 
 ################ CarrotNavi
+## 국가법령정보센터: 도로설계기준
+V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
+#V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
+V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 # Haversine formula to calculate distance between two GPS coordinates
 haversine_cache = {}
 def haversine(lon1, lat1, lon2, lat2):
@@ -229,9 +233,14 @@ class CarrotMan:
         remote_ip = remote_addr[0] if remote_addr is not None else ""
         vturn_speed = self.carrot_curve_speed(self.sm)
         coords, distances, curvatures = self.carrot_navi_route()
+        route_speeds = []
+        for curve in curvatures:
+          base_speed = interp(abs(curve), V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
+          route_speeds.append(base_speed)
+        
         #print("coords=", coords)
         #print("curvatures=", curvatures)
-        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances)
+        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances, route_speeds)
 
         if frame % 20 == 0 or remote_addr is not None:
           try:
@@ -619,12 +628,6 @@ class CarrotMan:
    
   def carrot_curve_speed(self, sm):
     self.carrot_curve_speed_params()
-
-    ## 국가법령정보센터: 도로설계기준
-    V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
-    #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
-    V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
-
     if not sm.alive['carState'] and not sm.alive['modelV2']:
         return 250
     #print(len(sm['modelV2'].orientationRate.z))
@@ -1197,7 +1200,7 @@ class CarrotServ:
 
     return atc_desired, atc_type, atc_speed, atc_dist
 
-  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords, distances):
+  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords, distances, route_speeds):
 
     self.update_params()
     if sm.alive['carState'] and sm.alive['selfdriveState']:
@@ -1275,12 +1278,16 @@ class CarrotServ:
     if self.autoTurnControl not in [1,2]:    # auto turn control
       self.atcType = "none"
 
+
     speed_n_sources = [
       (atc_desired, "atc"),
       (atc_desired_next, "atc2"),
       (sdi_speed, "hda" if hda_active else "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
       (abs(vturn_speed), "vturn"),
     ]
+    for dist, speed in zip(distances, route_speeds):
+      speed_n_sources.append(self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route")
+
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])
 
     if CS is not None:
