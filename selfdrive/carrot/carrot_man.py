@@ -1285,6 +1285,7 @@ class CarrotServ:
       (sdi_speed, "hda" if hda_active else "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
       (abs(vturn_speed), "vturn"),
     ]
+    print(route_speeds)
     for dist, speed in zip(distances, route_speeds):
       speed_n_sources.append(self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route")
 
