@@ -1910,7 +1910,6 @@ public:
     int   memoryUsage = 0;
     float freeSpace = 0.0f;
     void drawHud(UIState* s) {
-        drawNaviPath(s);
         blink_timer = (blink_timer + 1) % 16;
         nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
 
@@ -2284,6 +2283,7 @@ void ui_draw(UIState *s, ModelRenderer* model_renderer, int w, int h) {
   //ui_draw_text(s, 500, 500, "Carrot", 100, COLOR_GREEN, BOLD);
   Params params;
   drawCarrot.updateState(s);
+  drawCarrot.drawNaviPath(s);
   static float pathDrawSeq = 0.0;
   int show_lane_info = params.getInt("ShowLaneInfo");
   if(show_lane_info >= 0) drawPath.draw(s, pathDrawSeq);

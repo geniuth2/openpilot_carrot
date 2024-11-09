@@ -1258,7 +1258,7 @@ class CarrotServ:
       CS = None
       
     #bearing = self.nPosAngle #self._update_gps(v_ego, sm)
-    self.bearing = self._update_gps(v_ego, sm)
+    #self.bearing = self._update_gps(v_ego, sm)
 
     self.xSpdDist = max(self.xSpdDist - delta_dist, 0)
     self.xDistToTurn = max(self.xDistToTurn - delta_dist, 0)
@@ -1329,8 +1329,8 @@ class CarrotServ:
     ]
     if len(route_speeds) > 0:
       print(" ".join(str(round(speed, 1)) for speed in route_speeds))
-    for dist, speed in zip(distances, route_speeds):
-      speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
+    #for dist, speed in zip(distances, route_speeds):
+    #  speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
 
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])
 
@@ -1457,6 +1457,8 @@ class CarrotServ:
       return
     if "carrotIndex" in json:
       self.carrotIndex = int(json.get("carrotIndex"))
+    if "bearing" in json:
+      self.bearing = float(json.get("bearing"))
 
     if self.carrotIndex % 60 == 0 and "epochTime" in json:
       # op는 ntp를 사용하기때문에... 필요없는 루틴으로 보임.
