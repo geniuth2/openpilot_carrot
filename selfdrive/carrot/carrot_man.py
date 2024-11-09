@@ -1082,6 +1082,7 @@ class CarrotServ:
       self.bearing_offset = 0.0
     else:
       location_valid = False
+      breaing = 0.0
 
     now = time.monotonic()
     if self.active_sdi_count > self.active_sdi_count_max - 3:
