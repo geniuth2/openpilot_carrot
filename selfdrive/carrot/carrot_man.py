@@ -1080,7 +1080,7 @@ class CarrotServ:
       bearing = math.degrees(CC.orientationNED[2])
       print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}".format(CC.orientationNED[2], bearing))
       location_valid = False
-      self.bearing_offset = 0.0
+      # self.bearing_offset = 0.0
     else:
       print("CC.orientationNED[2] is not valid = {}".format(CC.orientationNED))
       location_valid = False
