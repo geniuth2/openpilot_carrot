@@ -296,7 +296,7 @@ class CarrotMan:
 
   def make_send_message(self):
     msg = {}
-    msg['Carrot'] = self.params.get("Version").decode('utf-8')
+    msg['Carrot2'] = self.params.get("Version").decode('utf-8')
     isOnroad = self.params.get_bool("IsOnroad")
     msg['IsOnroad'] = isOnroad
     msg['CarrotRouteActive'] = True if len(self.navi_points) > 0 else False
