@@ -1124,54 +1124,6 @@ class CarrotServ:
       self.xSpdLimit = 0
       self.xSpdType = -1
       self.xSpdDist = 0
-
-  def _update_gps_old(self, v_ego, sm):
-    if not sm.updated['carState'] or not sm.updated['carControl']:
-      return self.nPosAngle
-    CS = sm['carState']
-    CC = sm['carControl']
-    if len(CC.orientationNED) == 3:
-      bearing = math.degrees(CC.orientationNED[2])
-      #print("CC.orientationNED[2] = {:.1f}, bearing={:.1f}, nPosAngle={:.1f}, offset={:.1f}".format(CC.orientationNED[2], bearing, self.nPosAngle, self.bearing_offset))
-      location_valid = False
-      # self.bearing_offset = 0.0
-    else:
-      #print("CC.orientationNED[2] is not valid = {}".format(CC.orientationNED))
-      location_valid = False
-      bearing = 0.0
-      return self.nPosAngle
-
-    now = time.monotonic()
-    if self.active_sdi_count > self.active_sdi_count_max - 3:
-      if not location_valid and CS is not None:
-        diff_angle = self.nPosAngle - bearing;
-        while diff_angle < 0.0:
-          diff_angle += 360
-        diff_angle = (diff_angle + 180) % 360 - 180;
-        if abs(diff_angle) > 20 and v_ego > 1.0 and abs(CS.steeringAngleDeg) < 2.0:
-          self.diff_angle_count += 1
-        else:
-          self.diff_angle_count = 0
-        #print("{:.1f} bearing_diff[{}] = {:.1f} = {:.1f} - {:.1f}, v={:.1f},st={:.1f}".format(self.bearing_offset, self.diff_angle_count, diff_angle, self.nPosAngle, bearing, CS.vEgo*3.6, CS.steeringAngleDeg))
-        if self.diff_angle_count > 2:
-          self.bearing_offset = self.nPosAngle - bearing
-          #print("bearing_offset = {:.1f} = {:.1f} - {:.1f}".format(self.bearing_offset, self.nPosAngle, bearing))
-      #n초 통신 지연시간이 있다고 가정하고 좀더 진행한것으로 처리함.
-      dt = 0 #(unix_now - timeStamp / 1000.) if timeStamp > 0 else 0.1
-      dt += 0.2  #가상으로 0.5초만큼 더 진행한것으로 
-      self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing + self.bearing_offset, dt)
-      self.last_update_gps_time = now
-      self.last_calculate_gps_time = now
-    elif now - self.last_update_gps_time < 3.0:# and CS is not None:
-      dt = now - self.last_calculate_gps_time
-      self.last_calculate_gps_time = now
-      self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing + self.bearing_offset, dt)
-    #roadLimitSpeed.xPosSpeed = float(nPosSpeed)
-    #roadLimitSpeed.xPosAngle = float(bearing + self.bearing_offset)
-    #roadLimitSpeed.xPosLat = float(vpPosPointLat)
-    #roadLimitSpeed.xPosLon = float(vpPosPointLon)
-
-    return float(bearing + self.bearing_offset)
     
   def _update_gps(self, v_ego, sm):
     if not sm.updated['carState'] or not sm.updated['carControl']:
@@ -1191,7 +1143,7 @@ class CarrotServ:
     
     if self.diff_angle_count > 5:
         diff_angle = (self.nPosAngle - bearing) % 360
-        self.bearing_offset = diff_angle 
+        self.bearing_offset = self.bearing_offset * 0.9 + diff_angle  + 0.1
     
     bearing_calculated = (bearing + self.bearing_offset) % 360
 
@@ -1200,7 +1152,7 @@ class CarrotServ:
     self.last_calculate_gps_time = now
     self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
 
-    print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
+    #print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
     return float(bearing_calculated)
   
   def estimate_position(self, lat, lon, speed, angle, dt):
