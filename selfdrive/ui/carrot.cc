@@ -1844,7 +1844,9 @@ public:
                     //printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
                     float x = xy[0].toFloat();
                     float y = xy[1].toFloat();
-                    //d = xy[2].toFloat();
+                    //float d = xy[2].toFloat();                    
+                    //int idx = get_path_length_idx(model_position, d);
+
                     _model->mapToScreen((x<3.0) ? 5.0 : x, y, 1.22, &nav_path_vertex[nav_path_vertex_count++]);
                 }
             }
