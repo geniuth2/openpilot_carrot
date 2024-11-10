@@ -1157,6 +1157,7 @@ class CarrotServ:
     self.last_calculate_gps_time = now
     self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
 
+    self.debugText = "Angle={:.1f},{:.1f}={:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
     #print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
     return float(bearing_calculated)
   
@@ -1293,13 +1294,15 @@ class CarrotServ:
     atc_desired, self.atcType, self.atcSpeed, self.atcDist = self.update_auto_turn(v_ego*3.6, sm, self.xTurnInfo, self.xDistToTurn, True)
     atc_desired_next, _, _, _ = self.update_auto_turn(v_ego*3.6, sm, self.xTurnInfoNext, self.xDistToTurnNext, False)
 
-    if self.nSdiType  >= 0: # or self.active_carrot > 0:      
+    if self.nSdiType  >= 0: # or self.active_carrot > 0:
+      pass
       #self.debugText = f"Atc:{atc_desired:.1f},{self.xTurnInfo}:{self.xDistToTurn:.1f}, I({self.nTBTNextRoadWidth},{self.roadcate}) Atc2:{atc_desired_next:.1f},{self.xTurnInfoNext},{self.xDistToTurnNext:.1f}"
-      self.debugText = "" #f" {self.nSdiType}/{self.nSdiSpeedLimit}/{self.nSdiDist},BLOCK:{self.nSdiBlockType}/{self.nSdiBlockSpeed}/{self.nSdiBlockDist}, PLUS:{self.nSdiPlusType}/{self.nSdiPlusSpeedLimit}/{self.nSdiPlusDist}"
+      #self.debugText = "" #f" {self.nSdiType}/{self.nSdiSpeedLimit}/{self.nSdiDist},BLOCK:{self.nSdiBlockType}/{self.nSdiBlockSpeed}/{self.nSdiBlockDist}, PLUS:{self.nSdiPlusType}/{self.nSdiPlusSpeedLimit}/{self.nSdiPlusDist}"
     #elif self.nGoPosDist > 0 and self.active_carrot > 1:
     #  self.debugText = " 목적지:{:.1f}km/{:.1f}분 남음".format(self.nGoPosDist/1000., self.nGoPosTime / 60)
     else:
-      self.debugText = ""
+      #self.debugText = ""
+      pass
       
     if self.autoTurnControl not in [2, 3]:    # auto turn speed control
       atc_desired = atc_desired_next = 250
