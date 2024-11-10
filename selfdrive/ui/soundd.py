@@ -65,6 +65,7 @@ sound_list: dict[int, tuple[str, int | None, float]] = {
   AudibleAlert.audio8: ("audio_8.wav", None, MAX_VOLUME),
   AudibleAlert.audio9: ("audio_9.wav", None, MAX_VOLUME),
   AudibleAlert.audio10: ("audio_10.wav", None, MAX_VOLUME),
+  AudibleAlert.camalert: ("camalert.wav", None, MAX_VOLUME),
 }
 
 def check_selfdrive_timeout_alert(sm):
@@ -191,8 +192,9 @@ class Soundd:
           new_alert = AudibleAlert.longDisengaged
         elif 0 < count_down <= 10:
           new_alert = getattr(AudibleAlert, f'audio{count_down}')
-        elif count_down == 11:
-          new_alert = AudibleAlert.promptDistracted
+        elif count_down == 12:
+          #new_alert = AudibleAlert.promptDistracted
+          new_alert = AudibleAlert.camalert
           
     return new_alert
   
