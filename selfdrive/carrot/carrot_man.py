@@ -23,13 +23,13 @@ from common.numpy_fast import clip, interp
 from common.filter_simple import StreamingMovingAverage
 
 NetworkType = log.DeviceState.NetworkType
+TARGET_LAT_A = 1.9  # m/s^2
 
 ################ CarrotNavi
 ## 국가법령정보센터: 도로설계기준
 V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
-V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
+V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 35, 25, 15]
 #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
-
 # Haversine formula to calculate distance between two GPS coordinates
 haversine_cache = {}
 def haversine(lon1, lat1, lon2, lat2):
@@ -246,6 +246,10 @@ class CarrotMan:
 
     self.navi_points = []
     self.navi_points_start_index = 0
+
+    # kans: live update
+    self.frame = 0
+    self.target_lat_a = TARGET_LAT_A    
 
   def get_broadcast_address(self):
     try:
@@ -707,7 +711,8 @@ class CarrotMan:
     return turn_speed
   
   def vturn_speed(self, CS, sm):
-    TARGET_LAT_A = 1.9  # m/s^2
+    if self.frame % 50 == 0: # message frequency 2Hz
+      self.target_lat_a = self.params.get_int("TargetLatA")*0.01
     
     modelData = sm['modelV2']
     v_ego = max(CS.vEgo, 0.1)
@@ -724,7 +729,7 @@ class CarrotMan:
     max_curve = max_pred_lat_acc / (v_ego**2)
 
     # Set the target lateral acceleration
-    adjusted_target_lat_a = TARGET_LAT_A * self.autoCurveSpeedAggressiveness
+    adjusted_target_lat_a = self.target_lat_a * self.autoCurveSpeedAggressiveness
 
     # Get the target velocity for the maximum curve
     turnSpeed = max(abs(adjusted_target_lat_a / max_curve)**0.5  * 3.6, self.autoCurveSpeedLowerLimit)

@@ -53,6 +53,14 @@ class LatControlTorque(LatControl):
   def update(self, active, CS, VM, params, steer_limited, desired_curvature, calibrated_pose):
     self.frame += 1
     if self.frame % 10 == 0:
+      # kans: add torque Ki,Kp,Kf
+      lateralTorqueKp = float(Params().get_int("LateralTorqueKpV"))*0.01
+      lateralTorqueKi = float(Params().get_int("LateralTorqueKiV"))*0.01
+      lateralTorqueKf = float(Params().get_int("LateralTorqueKf"))*0.01
+      self.pid._k_p = [[0], [lateralTorqueKp]]
+      self.pid._k_i = [[0], [lateralTorqueKi]]
+      self.pid.k_f = lateralTorqueKf
+
       lateralTorqueCustom = self.params.get_int("LateralTorqueCustom")
       if lateralTorqueCustom > 0:
         self.torque_params.latAccelFactor = self.params.get_float("LateralTorqueAccelFactor")*0.001

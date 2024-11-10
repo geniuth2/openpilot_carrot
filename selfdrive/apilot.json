@@ -3,6 +3,32 @@
   "params": [
     {
       "group": "조향튜닝",
+      "name": "CameraOffset",
+      "title": "카메라 좌우보정(0)",
+      "descr": "(+)좌측,(-)우측",
+      "egroup": "LAT",
+      "etitle": "cameraOffset (0)",
+      "edescr": "(-)Left,(+)Right, works useLaneLineMode>0",
+      "min": -20,
+      "max": 20,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "steerFactor",
+      "title": "오버스티어 Offset x0.01(80)",
+      "descr": "커브안쪽으로 주행(오버스티어)시 값을 줄여준다",
+      "egroup": "LAT",
+      "etitle": "oversteer offset x0.01(95)",
+      "edescr": "reduce at oversteering",
+      "min": 30,
+      "max": 120,
+      "default": 80,
+      "unit": 5
+    },
+    {
+      "group": "조향튜닝",
       "name": "LateralTorqueCustom",
       "title": "_LateralTorqueCustom(0)",
       "descr": "0:LiveTorque, 1:CustomTorque",
@@ -39,6 +65,45 @@
       "max": 1000,
       "default": 100,
       "unit": 10
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueKpV",
+      "title": "_LateralTorqueKpV*0.01(100)",
+      "descr": "",
+      "egroup": "LAT",
+      "etitle": "_LateralTorqueKpV*0.01(100)",
+      "edescr": "",
+      "min": 0,
+      "max": 200,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueKiV",
+      "title": "_LateralTorqueKiV*0.01(10)",
+      "descr": "",
+      "egroup": "LAT",
+      "etitle": "_LateralTorqueKiV*0.01(10)",
+      "edescr": "",
+      "min": 0,
+      "max": 200,
+      "default": 10,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueKf",
+      "title": "_LateralTorqueKf*0.01(100)",
+      "descr": "",
+      "egroup": "LAT",
+      "etitle": "_LateralTorqueKf*0.001(100)",
+      "edescr": "",
+      "min": 0,
+      "max": 200,
+      "default": 100,
+      "unit": 1
     },
     {
       "group": "조향튜닝",
@@ -286,6 +351,19 @@
       "max": 300,
       "default": 10,
       "unit": 1
+    },
+    {
+      "group": "감속제어",
+      "name": "TargetLatA",
+      "title": "최대목표 횡가속도설정(190%)",
+      "descr": "최대로 안전하게 주행가능한 커브속도(차량마다 다름).",
+      "egroup": "DECEL",
+      "etitle": "target lateral a_ego(190%)",
+      "edescr": "Max latreral curve speed(different each vehicle)",
+      "min": 100,
+      "max": 200,
+      "default": 190,
+      "unit": 10
     },
     {
       "group": "조향일반",

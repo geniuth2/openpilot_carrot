@@ -23,6 +23,11 @@ def get_default_params():
     # kans
     ("LongPitch", "1"),
     ("EVTable", "1"),
+    # kans
+    ("CameraOffset", "5"),
+    ("steerFactor", "86"),
+    ("TrafficStopDistanceAdjust", "90"),
+    ("TargetLatA", "190"),
     ("CompletedTrainingVersion", "0"),
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),
@@ -103,6 +108,10 @@ def get_default_params():
     ("LateralTorqueCustom", "0"),       
     ("LateralTorqueAccelFactor", "2500"),       
     ("LateralTorqueFriction", "100"),
+    # kans
+    ("LateralTorqueKpV", "100"),
+    ("LateralTorqueKiV", "10"),
+    ("LateralTorqueKf", "100"),
     ("CustomSteerMax", "0"),       
     ("CustomSteerDeltaUp", "0"),       
     ("CustomSteerDeltaDown", "0"),       

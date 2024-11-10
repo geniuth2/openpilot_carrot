@@ -281,6 +281,10 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralTorqueCustom", PERSISTENT },
     { "LateralTorqueAccelFactor", PERSISTENT },
     { "LateralTorqueFriction", PERSISTENT },
+    // kans
+    { "LateralTorqueKpV", PERSISTENT },
+    { "LateralTorqueKiV", PERSISTENT },
+    { "LateralTorqueKf", PERSISTENT },
     { "CustomSteerMax", PERSISTENT },
     { "CustomSteerDeltaUp", PERSISTENT },
     { "CustomSteerDeltaDown", PERSISTENT },
@@ -297,6 +301,11 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"EVTable", PERSISTENT},
     {"LongPitch", PERSISTENT},    
 
+    //kans
+    {"CameraOffset", PERSISTENT },
+    {"steerFactor", PERSISTENT},
+    {"TrafficStopDistanceAdjust", PERSISTENT},
+    {"TargetLatA", PERSISTENT},
 };
 
 } // namespace
