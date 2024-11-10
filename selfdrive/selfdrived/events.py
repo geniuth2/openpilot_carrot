@@ -239,7 +239,7 @@ def below_steer_speed_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.S
   return Alert(
     f"Steer Unavailable Below {get_display_speed(CP.minSteerSpeed, metric)}",
     "",
-    AlertStatus.userPrompt, AlertSize.small,
+    AlertStatus.userPrompt, AlertSize.none,
     Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, 0.4)
 
 
