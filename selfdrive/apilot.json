@@ -128,7 +128,7 @@
       "edescr": "",
       "min": 0,
       "max": 50,
-      "default": 0,
+      "default": 9,
       "unit": 1
     },
     {
@@ -141,7 +141,7 @@
       "edescr": "",
       "min": 0,
       "max": 50,
-      "default": 0,
+      "default": 10,
       "unit": 1
     },
     {
@@ -154,68 +154,29 @@
       "edescr": "",
       "min": 1,
       "max": 100,
-      "default": 50,
+      "default": 45,
       "unit": 1
     },
     {
       "group": "가속설정",
       "name": "CruiseMaxVals1",
-      "title": "가속설정1:0km/h(160)",
+      "title": "가속설정1:0km/h(140)",
       "descr": "Normal mode only (x0.01m/s^2)",
       "egroup": "ACCEL",
-      "etitle": "AccelSet1:0km/h(160)",
+      "etitle": "AccelSet1:0km/h(140)",
       "edescr": "Normal mode only (x0.01m/s^2)",
       "min": 1,
       "max": 250,
-      "default": 160,
+      "default": 140,
       "unit": 5
     },
     {
       "group": "가속설정",
       "name": "CruiseMaxVals2",
-      "title": "가속설정2:40km/h(120)",
+      "title": "가속설정2:40km/h(70)",
       "descr": "Normal mode only (x0.01m/s^2)",
       "egroup": "ACCEL",
-      "etitle": "AccelSet2:40km/h(120)",
-      "edescr": "Normal mode only (x0.01m/s^2)",
-      "min": 1,
-      "max": 250,
-      "default": 120,
-      "unit": 5
-    },
-    {
-      "group": "가속설정",
-      "name": "CruiseMaxVals3",
-      "title": "가속설정3:60km/h(100)",
-      "descr": "Normal mode only (x0.01m/s^2)",
-      "egroup": "ACCEL",
-      "etitle": "AccelSet3:60km/h(100)",
-      "edescr": "Normal mode only (x0.01m/s^2)",
-      "min": 1,
-      "max": 250,
-      "default": 100,
-      "unit": 5
-    },
-    {
-      "group": "가속설정",
-      "name": "CruiseMaxVals4",
-      "title": "가속설정4:80km/h(80)",
-      "descr": "Normal mode only (x0.01m/s^2)",
-      "egroup": "ACCEL",
-      "etitle": "AccelSet4:80km/h(80)",
-      "edescr": "Normal mode only (x0.01m/s^2)",
-      "min": 1,
-      "max": 250,
-      "default": 80,
-      "unit": 5
-    },
-    {
-      "group": "가속설정",
-      "name": "CruiseMaxVals5",
-      "title": "가속설정5:110km/h(70)",
-      "descr": "Normal mode only (x0.01m/s^2)",
-      "egroup": "ACCEL",
-      "etitle": "AccelSet5:110km/h(70)",
+      "etitle": "AccelSet2:40km/h(70)",
       "edescr": "Normal mode only (x0.01m/s^2)",
       "min": 1,
       "max": 250,
@@ -224,16 +185,68 @@
     },
     {
       "group": "가속설정",
-      "name": "CruiseMaxVals6",
-      "title": "가속설정6:140km/h(60)",
+      "name": "CruiseMaxVals3",
+      "title": "가속설정3:60km/h(45)",
       "descr": "Normal mode only (x0.01m/s^2)",
       "egroup": "ACCEL",
-      "etitle": "AccelSet6:140km/h(60)",
+      "etitle": "AccelSet3:60km/h(45)",
+      "edescr": "Normal mode only (x0.01m/s^2)",
+      "min": 1,
+      "max": 250,
+      "default": 45,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals4",
+      "title": "가속설정4:80km/h(35)",
+      "descr": "Normal mode only (x0.01m/s^2)",
+      "egroup": "ACCEL",
+      "etitle": "AccelSet4:80km/h(35)",
+      "edescr": "Normal mode only (x0.01m/s^2)",
+      "min": 1,
+      "max": 250,
+      "default": 35,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals5",
+      "title": "가속설정5:110km/h(25)",
+      "descr": "Normal mode only (x0.01m/s^2)",
+      "egroup": "ACCEL",
+      "etitle": "AccelSet5:110km/h(25)",
+      "edescr": "Normal mode only (x0.01m/s^2)",
+      "min": 1,
+      "max": 250,
+      "default": 25,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals6",
+      "title": "가속설정6:140km/h(25)",
+      "descr": "Normal mode only (x0.01m/s^2)",
+      "egroup": "ACCEL",
+      "etitle": "AccelSet6:140km/h(15)",
       "edescr": "(x0.01m/s^2)",
       "min": 1,
       "max": 250,
-      "default": 60,
+      "default": 15,
       "unit": 5
+    },
+    {
+      "group": "주행튜닝",
+      "name": "TrafficStopDistanceAdjust",
+      "title": "신호정지 위치조정(150)cm",
+      "descr": "높을수록 신호정지선 가까이에 서거나 정지선을 지나감.",
+      "egroup": "LONG",
+      "etitle": "TrafficStopDistance adjust (150)cm",
+      "edescr": "",
+      "min": -1000,
+      "max": 1000,
+      "default": 120,
+      "unit": 10
     },
     {
       "group": "주행튜닝",
@@ -284,7 +297,7 @@
       "edescr": "",
       "min": 0,
       "max": 200,
-      "default": 0,
+      "default": 100,
       "unit": 5
     },
     {
@@ -323,14 +336,14 @@
       "edescr": "",
       "min": 0,
       "max": 200,
-      "default": 0,
+      "default": 10,
       "unit": 1
     },
     {
       "group": "감속제어",
       "name": "AutoCurveSpeedFactor",
       "title": "커브속도 조절비율(100%)",
-      "descr": "높으면 커브속도가 느려집니다.",
+      "descr": "낮으면 커브속도가 느려집니다.",
       "egroup": "DECEL",
       "etitle": "CurveSpeedFactor(100%)",
       "edescr": "Higher value, slow curve speed",
@@ -343,13 +356,13 @@
       "group": "감속제어",
       "name": "AutoCurveSpeedAggressiveness",
       "title": "커브속도 적극성(100%)",
-      "descr": "올리면 진입속도가 적극적으로 변합니다.",
+      "descr": "낮추면 진입속도가 줄어듭니다.",
       "egroup": "DECEL",
       "etitle": "CurveSpeed Aggressiveness(100%)",
       "edescr": "Higher value, more speed down",
-      "min": 50,
+      "min": 0,
       "max": 300,
-      "default": 10,
+      "default": 100,
       "unit": 1
     },
     {
@@ -394,7 +407,7 @@
     {
       "group": "조향일반",
       "name": "AutoTurnControlTurnEnd",
-      "title": "ATC: 시간거리(3)",
+      "title": "ATC: 시간거리(6)",
       "descr": "NOO완료 시간거리(속도*시간)",
       "egroup": "LATSET",
       "etitle": "ATC: Speed Ctrl left Time(3)",
@@ -414,7 +427,7 @@
       "edescr": "0:General,1:User1,2:User2",
       "min": 0,
       "max": 2,
-      "default": 0,
+      "default": 1,
       "unit": 1
     },
     {
@@ -466,7 +479,7 @@
       "edescr": "SET/DECEL up/down speed rate",
       "min": 1,
       "max": 20,
-      "default": 10,
+      "default": 5,
       "unit": 1
     },
     {
@@ -518,7 +531,7 @@
       "edescr": "",
       "min": 0,
       "max": 3000,
-      "default": 60,
+      "default": 180,
       "unit": 10
     },
     {
@@ -596,7 +609,7 @@
       "edescr": "",
       "min": 0,
       "max": 1,
-      "default": 1,
+      "default": 0,
       "unit": 1
     },
     {
@@ -622,7 +635,7 @@
       "edescr": "-1:None, 0:Path, 1:Path+Lane, 2:Path+Lane+RoadEdge",
       "min": -1,
       "max": 2,
-      "default": 1,
+      "default": 2,
       "unit": 1
     },
     {
@@ -635,7 +648,7 @@
       "edescr": "",
       "min": 0,
       "max": 3,
-      "default": 0,
+      "default": 3,
       "unit": 1
     },
     {
@@ -779,7 +792,7 @@
       "min": 0,
       "max": 500,
       "default": 0,
-      "unit": 10
+      "unit": 1
     },
     {
       "group": "조향일반",
@@ -815,9 +828,9 @@
       "egroup": "START",
       "etitle": "MaxAngleFrames(1)",
       "edescr": "",
-      "min": 80,
+      "min": 0,
       "max": 100,
-      "default": 89,
+      "default": 0,
       "unit": 1
     },
     {
@@ -882,7 +895,7 @@
       "edescr": "",
       "min": 5,
       "max": 200,
-      "default": 0,
+      "default": 100,
       "unit": 5
     },
     {
@@ -895,7 +908,7 @@
       "edescr": "",
       "min": 5,
       "max": 200,
-      "default": 0,
+      "default": 80,
       "unit": 5
     },
     {
@@ -908,7 +921,7 @@
       "edescr": "",
       "min": 70,
       "max": 300,
-      "default": 110,
+      "default": 90,
       "unit": 5
     },
     {
@@ -921,7 +934,7 @@
       "edescr": "",
       "min": 70,
       "max": 300,
-      "default": 120,
+      "default": 180,
       "unit": 5
     },
     {
@@ -934,7 +947,7 @@
       "edescr": "",
       "min": 70,
       "max": 300,
-      "default": 140,
+      "default": 270,
       "unit": 5
     },
     {
@@ -947,7 +960,7 @@
       "edescr": "",
       "min": 70,
       "max": 300,
-      "default": 160,
+      "default": 90,
       "unit": 5
     },
     {
@@ -960,7 +973,7 @@
       "edescr": "Lower limit speed",
       "min": 10,
       "max": 200,
-      "default": 30,
+      "default": 40,
       "unit": 10
     },
     {
@@ -973,7 +986,7 @@
       "edescr": "",
       "min": -100,
       "max": 0,
-      "default": 0,
+      "default": -40,
       "unit": 10
     },
     {
@@ -992,14 +1005,14 @@
     {
       "group": "감속제어",
       "name": "AutoNaviSpeedCtrlEnd",
-      "title": "과속카메라감속 완료 시간(6초)",
+      "title": "과속카메라감속 완료 시간(12초)",
       "descr": "감속종료시점을 설정합니다.",
       "egroup": "SPEED",
-      "etitle": "NaviSpeedEndingPoint(6s)",
+      "etitle": "NaviSpeedEndingPoint(12s)",
       "edescr": "Deceleration completion point",
       "min": 3,
       "max": 20,
-      "default": 6,
+      "default": 12,
       "unit": 1
     },
     {
@@ -1012,7 +1025,7 @@
       "edescr": "",
       "min": 1,
       "max": 50,
-      "default": 1,
+      "default": 7,
       "unit": 1
     },
     {
@@ -1025,7 +1038,7 @@
       "edescr": "",
       "min": 10,
       "max": 100,
-      "default": 35,
+      "default": 25,
       "unit": 5
     },
     {
@@ -1038,7 +1051,7 @@
       "edescr": "",
       "min": 100,
       "max": 300,
-      "default": 200,
+      "default": 160,
       "unit": 10
     },
     {
@@ -1064,7 +1077,7 @@
       "edescr": "",
       "min": 80,
       "max": 120,
-      "default": 105,
+      "default": 95,
       "unit": 1
     }
   ]
