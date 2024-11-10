@@ -1919,7 +1919,7 @@ public:
         int bx = x;
         int by = y + 270;
 
-        ui_fill_rect(s->vg, { bx - 120, by - 270, 475, 495}, COLOR_BLACK_ALPHA(90), 30);
+        ui_fill_rect(s->vg, { bx - 120, by - 220, 475, 425}, COLOR_BLACK_ALPHA(90), 30);
 
 
         // draw traffic light
@@ -1930,25 +1930,25 @@ public:
 
         if(trafficState_carrot == 1) {
 			red_light = true;
-            icon_red *= 1.5;
+            icon_red *= 1.0;
 		}
 		else if(trafficState_carrot == 2) {
 			green_light = true;
-            icon_green *= 1.5;
+            icon_green *= 1.0;
 		}
-        if (red_light) ui_draw_image(s, { x - icon_red / 2, y - icon_red / 2 + 270, icon_red, icon_red }, "ic_traffic_red", 1.0f);
-        else if (green_light) ui_draw_image(s, { x - icon_green / 2, y - icon_green / 2 + 270, icon_green, icon_green }, "ic_traffic_green", 1.0f);
+        if (red_light) ui_draw_image(s, { x - icon_red / 2 + 25, y - icon_red / 2 + 310, icon_red, icon_red - 220 }, "ic_traffic_red", 1.0f);
+        else if (green_light) ui_draw_image(s, { x - icon_green / 2 - 100, y - icon_green / 2 + 310, icon_green, icon_green - 220 }, "ic_traffic_green", 1.0f);
 
         // draw speed
         char speed[32];
         sprintf(speed, "%.0f", v_ego * 3.6);
-        ui_draw_text(s, bx, by + 50, speed, 120, COLOR_WHITE, BOLD, 3.0f, 8.0f);
-        ui_draw_image(s, { bx - 100, by - 60, 350, 150 }, "ic_speed_bg", 1.0f);
+        ui_draw_text(s, bx, by + 95, speed, 120, COLOR_WHITE, BOLD, 3.0f, 8.0f);
+        ui_draw_image(s, { bx - 100, by - 30, 350, 80 }, "ic_speed_bg", 1.0f);
 
         // draw cruise speed
         char cruise_speed[32];
         int cruise_x = bx + 170;
-        int cruise_y = by + 15;
+        int cruise_y = by + 60;
         if(longActive) sprintf(cruise_speed, "%.0f", v_cruise);
 		else sprintf(cruise_speed, "--");
         if (strcmp(cruise_speed_last, cruise_speed) != 0) {
@@ -1963,7 +1963,7 @@ public:
         NVGcolor white_color = COLOR_WHITE;
         char apply_speed_str[32];
         int apply_x = bx + 250;
-        int apply_y = by - 50;
+        int apply_y = by - 5;
 
         if (apply_source.length()) {
             sprintf(apply_speed_str, "%.0f", apply_speed);
@@ -1990,23 +1990,23 @@ public:
         default: strcpy(driving_mode_str, tr("ERRM").toStdString().c_str()); break;
         }
         int dx = bx - 50;
-        int dy = by + 175;
+        int dy = by + 185;
         ui_fill_rect(s->vg, { dx - 55, dy - 38, 110, 48 }, mode_color, 15, 2);
         ui_draw_text(s, dx, dy, driving_mode_str, 40, text_color, BOLD);
         if (strcmp(driving_mode_str, driving_mode_str_last)) ui_draw_text_a(s, dx, dy, driving_mode_str, 30, COLOR_WHITE, BOLD);
         strcpy(driving_mode_str_last, driving_mode_str);
 
-        char gap_str[32];
+        //char gap_str[32];
         int gap = params.getInt("LongitudinalPersonality") + 1;
-        dx = bx + 220;
-        dy = by + 77;
-        sprintf(gap_str, "%d", gap);
-        ui_draw_text(s, dx, dy, gap_str, 40, COLOR_WHITE, BOLD);
-        if (gap_last != gap) ui_draw_text_a(s, dx, dy, gap_str, 40, COLOR_WHITE, BOLD);
-        gap_last = gap;
+        //dx = bx + 220;
+        //dy = by + 77;
+        //sprintf(gap_str, "%d", gap);
+        //ui_draw_text(s, dx, dy, gap_str, 40, COLOR_WHITE, BOLD);
+        //if (gap_last != gap) ui_draw_text_a(s, dx, dy, gap_str, 40, COLOR_WHITE, BOLD);
+        //gap_last = gap;
 
         dx = bx + 300 - 30;
-        dy = by + 175 + 10;// -38;
+        dy = by + 190;// -38;
         //float ddx = 70 / 4.;
         float ddy = 80 / 4.;
 #ifdef __UI_TEST
@@ -2019,7 +2019,7 @@ public:
 
         char gear_str[32] = "R";
         dx = bx + 305;
-        dy = by + 60;
+        dy = by + 75;
         const SubMaster& sm = *(s->sm);
         auto carState = sm["carState"].getCarState();
         if (carState.getGearShifter() == cereal::CarState::GearShifter::UNKNOWN) strcpy(gear_str, "U");
@@ -2047,7 +2047,7 @@ public:
         }
 
         dx = bx + 200;
-        dy = by + 175;
+        dy = by + 185;
 #ifdef __UI_TEST
         active_carrot = 2;
 #endif
@@ -2068,7 +2068,7 @@ public:
 
         if (active_carrot >= 2) {
             dx = bx + 75;
-            dy = by + 175;
+            dy = by + 185;
             int disp_speed = 0;
             NVGcolor limit_color = COLOR_GREEN_ALPHA(210);
             if (xSpdLimit > 0 && xSignType != 22) {
@@ -2089,7 +2089,7 @@ public:
         if (true) {
             char str[128];
             dx = bx - 35;
-            dy = by - 200;
+            dy = by - 165;
             mode_color = COLOR_GREEN_ALPHA(190);
             ui_fill_rect(s->vg, { dx - 65, dy - 38, 130, 90 }, (cpuTemp>80 && blink_timer<=8)?COLOR_RED : mode_color, 15, 2);
             ui_draw_text(s, dx, dy, "CPU", 30, COLOR_WHITE, BOLD);
