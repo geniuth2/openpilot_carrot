@@ -1125,7 +1125,7 @@ class CarrotServ:
       self.xSpdType = -1
       self.xSpdDist = 0
 
-  def _update_gps(self, v_ego, sm):
+  def _update_gps_old(self, v_ego, sm):
     if not sm.updated['carState'] or not sm.updated['carControl']:
       return self.nPosAngle
     CS = sm['carState']
