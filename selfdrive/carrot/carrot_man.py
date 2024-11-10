@@ -1173,6 +1173,36 @@ class CarrotServ:
 
     return float(bearing + self.bearing_offset)
     
+  def _update_gps(self, v_ego, sm):
+    if not sm.updated['carState'] or not sm.updated['carControl']:
+      return self.nPosAngle
+    CS = sm['carState']
+    CC = sm['carControl']
+    if len(CC.orientationNED) == 3:
+      bearing = math.degrees(CC.orientationNED[2])
+    else:
+      bearing = 0.0
+      return self.nPosAngle
+
+    if abs(CS.steeringAngleDeg) < 2.0:
+        self.diff_angle_count += 1
+    else:
+        self.diff_angle_count = 0
+    
+    if self.diff_angle_count > 5:
+        diff_angle = (self.nPosAngle - bearing) % 360
+        self.bearing_offset = diff_angle 
+    
+    bearing_calculated = (bearing + self.bearing_offset) % 360
+
+    now = time.monotonic()
+    dt = now - self.last_calculate_gps_time
+    self.last_calculate_gps_time = now
+    self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
+
+    print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
+    return float(bearing_calculated)
+  
   def estimate_position(self, lat, lon, speed, angle, dt):
     R = 6371000
     angle_rad = math.radians(angle)
@@ -1257,8 +1287,8 @@ class CarrotServ:
       delta_dist = 0
       CS = None
       
-    self.bearing = self.nPosAngle #self._update_gps(v_ego, sm)
-    #self.bearing = self._update_gps(v_ego, sm)
+    #self.bearing = self.nPosAngle #self._update_gps(v_ego, sm)
+    self.bearing = self._update_gps(v_ego, sm)
 
     self.xSpdDist = max(self.xSpdDist - delta_dist, 0)
     self.xDistToTurn = max(self.xDistToTurn - delta_dist, 0)
@@ -1457,11 +1487,6 @@ class CarrotServ:
       return
     if "carrotIndex" in json:
       self.carrotIndex = int(json.get("carrotIndex"))
-    if "bearing" in json:
-      #self.bearing = float(json.get("bearing"))
-      bearing = float(json.get("bearing"))
-      print("bearing={:.1f}, {}".format(bearing, self.nPosAngle))
-      pass
 
     if self.carrotIndex % 60 == 0 and "epochTime" in json:
       # op는 ntp를 사용하기때문에... 필요없는 루틴으로 보임.
