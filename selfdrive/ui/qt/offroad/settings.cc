@@ -3,6 +3,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <thread> //차선 캘리용
 
 #include <QDebug>
 
@@ -201,6 +202,11 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   reboot_btn->setObjectName("reboot_btn");
   power_layout->addWidget(reboot_btn);
   QObject::connect(reboot_btn, &QPushButton::clicked, this, &DevicePanel::reboot);
+  //차선 캘리추가
+  QPushButton *reset_CalibBtn = new QPushButton(tr("ReCalibration"));
+  reset_CalibBtn->setObjectName("reset_CalibBtn");
+  power_layout->addWidget(reset_CalibBtn);
+  QObject::connect(reset_CalibBtn, &QPushButton::clicked, this, &DevicePanel::calibration);
 
   QPushButton* poweroff_btn = new QPushButton(tr("Power Off"));
   poweroff_btn->setObjectName("poweroff_btn");
@@ -214,6 +220,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   setStyleSheet(R"(
     #reboot_btn { height: 120px; border-radius: 15px; background-color: #393939; }
     #reboot_btn:pressed { background-color: #4a4a4a; }
+    #reset_CalibBtn { height: 120px; border-radius: 15px; background-color: #393939; }
+    #reset_CalibBtn:pressed { background-color: #4a4a4a; }
     #poweroff_btn { height: 120px; border-radius: 15px; background-color: #E22C2C; }
     #poweroff_btn:pressed { background-color: #FF2424; }
   )");
@@ -327,6 +335,24 @@ void DevicePanel::reboot() {
     }
   } else {
     ConfirmationDialog::alert(tr("Disengage to Reboot"), this);
+  }
+}
+
+void execAndReboot(const std::string& cmd) {
+    system(cmd.c_str());
+    Params().putBool("DoReboot", true);
+}
+
+void DevicePanel::calibration() {
+  if (!uiState()->engaged()) {
+    if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration?"), tr("ReCalibration"), this)) {
+      if (!uiState()->engaged()) {
+        std::thread worker(execAndReboot, "cd /data/params/d_tmp;  rm -f CalibrationParams");
+        worker.detach();
+      }
+    }
+  } else {
+    ConfirmationDialog::alert(tr("Reboot & Disengage to Calibration"), this);
   }
 }
 
