@@ -1069,6 +1069,19 @@
     },
     {
       "group": "감속제어",
+      "name": "TurnSpeedControlMode",
+      "title": "턴속도제어방법",
+      "descr": "0: 속도제어안함,1:비젼,2:비젼+경로,3:경로",
+      "egroup": "SPEED",
+      "etitle": "TurnSpeedControlMode",
+      "edescr": "",
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "AutoNaviSpeedSafetyFactor",
       "title": "과속카메라 제한속도적용율(105)%",
       "descr": "",

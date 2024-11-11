@@ -968,7 +968,8 @@ protected:
         ui_fill_rect(s->vg, { tbt_x, tbt_y - 60, 790, 240 + 60 }, COLOR_BLACK_ALPHA(120), 30);
         if (szPosRoadName.length() > 0) {
             nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
-   			ui_draw_text(s, tbt_x + 190, tbt_y-5, szPosRoadName.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
+            ui_draw_text(s, tbt_x + 90, tbt_y - 5, szPosRoadName.toStdString().c_str(), 30, COLOR_WHITE, BOLD);
+            //ui_draw_text(s, tbt_x + 190, tbt_y - 5, szPosRoadName.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
         }
 
         if(xTurnInfo > 0) {
@@ -1841,13 +1842,13 @@ public:
             foreach(const QString & pair, pairs) {
                 QStringList xy = pair.split(",");  // ","로 x와 y 구분                
                 if (xy.size() == 3) {
-                    //printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
+                    printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
                     float x = xy[0].toFloat();
                     float y = xy[1].toFloat();
                     float d = xy[2].toFloat();                    
                     int idx = get_path_length_idx(model_position, d);
 
-                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, model_position.getZ()[idx], &nav_path_vertex[nav_path_vertex_count++]);
+                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, model_position.getZ()[idx]+1.22, &nav_path_vertex[nav_path_vertex_count++]);
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();
@@ -1891,6 +1892,7 @@ public:
         }
     }
     void drawNaviPath(UIState* s) {
+        /*
         if (nav_path_vertex_count > 0) {
 			nvgBeginPath(s->vg);
 			nvgMoveTo(s->vg, nav_path_vertex[0].x(), nav_path_vertex[0].y());
@@ -1901,6 +1903,19 @@ public:
 			nvgStrokeWidth(s->vg, 20.0f);
 			nvgStroke(s->vg);
 		}
+        */
+
+        if (nav_path_vertex_count > 1) {
+            for(int i = 1; i < nav_path_vertex_count; i++) {
+                float x = nav_path_vertex[i].x();
+                float y = nav_path_vertex[i].y();
+                if(isnan(x) || isnan(y)) continue;
+				nvgBeginPath(s->vg);
+                nvgCircle(s->vg, x, y, 10);
+                nvgFillColor(s->vg, COLOR_GREEN);
+                nvgFill(s->vg);
+			}
+        }
     }
     char    cruise_speed_last[32] = "";
     char    driving_mode_str_last[32] = "";

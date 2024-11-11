@@ -1,3 +1,4 @@
+from tkinter import CURRENT
 import numpy as np
 import time
 import threading
@@ -21,6 +22,7 @@ import cereal.messaging as messaging
 from cereal import log
 from common.numpy_fast import clip, interp
 from common.filter_simple import StreamingMovingAverage
+from shapely.geometry import LineString
 
 NetworkType = log.DeviceState.NetworkType
 TARGET_LAT_A = 1.9  # m/s^2
@@ -95,11 +97,10 @@ def get_path_after_distance(start_index, coordinates, current_position, distance
     # Start from the closest point and calculate the path after the specified distance
     if closest_index != -1:
         path_after_distance.append(closest_point)
-        distances.append(0)
 
         path_after_distance.append(coordinates[closest_index + 1])
-        total_distance = haversine(closest_point[0], closest_point[1], coordinates[closest_index + 1][0], coordinates[closest_index + 1][1])
-        distances.append(total_distance)
+        total_distance = haversine(closest_point[0], closest_point[1], coordinates[closest_index + 1][0],
+                                   coordinates[closest_index + 1][1])
 
         # Traverse the path forward from the next point
         for i in range(closest_index + 1, len(coordinates) - 1):
@@ -113,55 +114,18 @@ def get_path_after_distance(start_index, coordinates, current_position, distance
                 interpolated_lon = coord1[0] + ratio * (coord2[0] - coord1[0])
                 interpolated_lat = coord1[1] + ratio * (coord2[1] - coord1[1])
                 path_after_distance.append((interpolated_lon, interpolated_lat))
-                distances.append(distance_m)
                 break
 
             total_distance += segment_distance
             path_after_distance.append(coord2)
-            distances.append(total_distance)
 
-    return path_after_distance, distances, start_index
+    return path_after_distance, start_index
+
 
 def calculate_angle(point1, point2):
     delta_lon = point2[0] - point1[0]
     delta_lat = point2[1] - point1[1]
     return math.degrees(math.atan2(delta_lat, delta_lon))
-
-def smooth_path(path_after_distance, smooth_factor=0.2):
-    smoothed_path = []
-    n = len(path_after_distance)
-    if n == 0:
-        return smoothed_path
-
-    smoothed_path.append(path_after_distance[0])  # 첫 번째 포인트는 그대로 추가
-
-    for i in range(1, n - 1):
-        prev_point = path_after_distance[i - 1]
-        current_point = path_after_distance[i]
-        next_point = path_after_distance[i + 1]
-
-        # 이전, 현재 포인트 사이의 각도와 현재, 다음 포인트 사이의 각도 계산
-        angle_prev = calculate_angle(prev_point, current_point)
-        angle_next = calculate_angle(current_point, next_point)
-
-        # 각도가 45도 이하인 경우에만 smoothing 적용
-        if abs(angle_next - angle_prev) <= 45:
-            smoothed_lon = (prev_point[0] + smooth_factor * current_point[0] + next_point[0]) / (2 + smooth_factor)
-            smoothed_lat = (prev_point[1] + smooth_factor * current_point[1] + next_point[1]) / (2 + smooth_factor)
-            smoothed_path.append((smoothed_lon, smoothed_lat))
-        else:
-            smoothed_path.append(current_point)
-
-    smoothed_path.append(path_after_distance[-1])  # 마지막 포인트는 그대로 추가
-
-    return smoothed_path
-
-# 경로 데이터를 가져와 smoothing 적용
-def get_smoothed_path_after_distance(start_index, coordinates, current_position, distance_m, smooth_factor=0.2):
-    path_after_distance, distances, start_index = get_path_after_distance(start_index, coordinates, current_position,
-                                                                          distance_m)
-    smoothed_path = smooth_path(path_after_distance, smooth_factor)
-    return smoothed_path, distances, start_index
 
 # Convert GPS coordinates to relative x, y coordinates based on a reference point and heading
 def gps_to_relative_xy(gps_path, reference_point, heading_deg):
@@ -184,9 +148,9 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
 
     return relative_coordinates
 
+
 # Calculate curvature given three points using a faster vector-based method
 curvature_cache = {}
-
 def calculate_curvature(p1, p2, p3):
     key = (p1, p2, p3)
     if key in curvature_cache:
@@ -196,8 +160,8 @@ def calculate_curvature(p1, p2, p3):
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
 
     cross_product = v1[0] * v2[1] - v1[1] * v2[0]
-    len_v1 = math.sqrt(v1[0]**2 + v1[1]**2)
-    len_v2 = math.sqrt(v2[0]**2 + v2[1]**2)
+    len_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+    len_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
 
     if len_v1 * len_v2 == 0:
         curvature = 0
@@ -278,15 +242,11 @@ class CarrotMan:
         remote_addr = self.remote_addr
         remote_ip = remote_addr[0] if remote_addr is not None else ""
         vturn_speed = self.carrot_curve_speed(self.sm)
-        coords, distances, curvatures = self.carrot_navi_route()
-        route_speeds = []
-        for curve in curvatures:
-          base_speed = interp(abs(curve), V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
-          route_speeds.append(base_speed)
+        coords, distances, route_speeds, speed_distances = self.carrot_navi_route()
         
         #print("coords=", coords)
         #print("curvatures=", curvatures)
-        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances, route_speeds)
+        self.carrot_serv.update_navi(remote_ip, self.sm, self.pm, vturn_speed, coords, distances, route_speeds, speed_distances)
 
         if frame % 20 == 0 or remote_addr is not None:
           try:
@@ -329,33 +289,49 @@ class CarrotMan:
     if len(self.navi_points) == 0:
       haversine_cache.clear()
       curvature_cache.clear()
-      return [],[],[]
-    #index = 0
-    #alpha = 0.3
-    #current_position = (
-    #    coordinates[index][0] * alpha + coordinates[index+1][0] * (1-alpha),
-    #    coordinates[index][1] * alpha + coordinates[index+1][1] * (1-alpha)
-    #)
-    #heading_deg = 270
+      return [],[],[],[]
+
     current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
     heading_deg = self.carrot_serv.bearing
 
-    path, distances, self.navi_points_start_index = get_smoothed_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
+    path, self.navi_points_start_index = get_path_after_distance(self.navi_points_start_index, self.navi_points, current_position, 300)
+    relative_coords = []
     if path:
-      relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
-      curvatures = []
-      if len(relative_coords) >= 3:        
-        for i in range(len(relative_coords) - 2):
-          p1 = relative_coords[i]
-          p2 = relative_coords[i + 1]
-          p3 = relative_coords[i + 2]
-          curvature = calculate_curvature(p1, p2, p3)
-          curvatures.append(curvature)
+        relative_coords = gps_to_relative_xy(path, current_position, heading_deg)
+        # Resample relative_coords at 5m intervals using LineString
+        line = LineString(relative_coords)
+        resampled_points = []
+        resampled_distances = []
+        current_distance = 0        
+        while current_distance <= line.length:
+            point = line.interpolate(current_distance)
+            resampled_points.append((point.x, point.y))
+            resampled_distances.append(current_distance)
+            current_distance += 10
+
+        curvatures = []
+        distances = []
+        speeds = []
+        distance = 10.0
+        if len(resampled_points) >= 5:
+            for i in range(len(resampled_points) - 4):
+                distance += 10.0
+                p1 = resampled_points[i]
+                p2 = resampled_points[i + 2]
+                p3 = resampled_points[i + 4]
+                curvature = calculate_curvature(p1, p2, p3)
+                curvatures.append(curvature)
+                if curvature > 0.001:
+                    speed = interp(abs(curvature), V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
+                    speeds.append(speed)
+                    distances.append(distance)
     else:
-      relative_coords = []
-      curvatures = []
+        resampled_points = []
+        curvatures = []
+        speeds = []
+        distances = []
       
-    return relative_coords, distances, curvatures
+    return resampled_points, resampled_distances, speeds, distances
 
 
   def make_send_message(self):
@@ -825,7 +801,8 @@ class CarrotServ:
     self.source_last = "none"
 
     self.debugText = ""
-
+    
+    self.update_params()
 
   def update_params(self):
     self.autoNaviSpeedBumpSpeed = float(self.params.get_int("AutoNaviSpeedBumpSpeed"))
@@ -834,6 +811,7 @@ class CarrotServ:
     self.autoNaviSpeedSafetyFactor = float(self.params.get_int("AutoNaviSpeedSafetyFactor")) * 0.01
     self.autoNaviSpeedDecelRate = float(self.params.get_int("AutoNaviSpeedDecelRate")) * 0.01
     self.autoNaviCountDownMode = self.params.get_int("AutoNaviCountDownMode")
+    self.turnSpeedControlMode= self.params.get_int("TurnSpeedControlMode")
 
     self.autoTurnControlSpeedTurn = self.params.get_int("AutoTurnControlSpeedTurn")
     #self.autoTurnMapChange = self.params.get_int("AutoTurnMapChange")
@@ -1145,10 +1123,12 @@ class CarrotServ:
         self.diff_angle_count += 1
     else:
         self.diff_angle_count = 0
-    
+
     if self.diff_angle_count > 5:
-        diff_angle = (self.nPosAngle - bearing) % 360
-        self.bearing_offset = self.bearing_offset * 0.9 + diff_angle  + 0.1
+      diff_angle = (self.nPosAngle - bearing) % 360
+      if diff_angle > 180:
+        diff_angle -= 360
+      self.bearing_offset = self.bearing_offset * 0.9 + diff_angle * 0.1
     
     bearing_calculated = (bearing + self.bearing_offset) % 360
 
@@ -1157,9 +1137,10 @@ class CarrotServ:
     self.last_calculate_gps_time = now
     self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
 
-    self.debugText = "Angle={:.1f},{:.1f}={:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
+    self.debugText = " {:.1f},{:.1f}={:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
     #print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
     return float(bearing_calculated)
+
   
   def estimate_position(self, lat, lon, speed, angle, dt):
     R = 6371000
@@ -1230,7 +1211,7 @@ class CarrotServ:
 
     return atc_desired, atc_type, atc_speed, atc_dist
 
-  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords, distances, route_speeds):
+  def update_navi(self, remote_ip, sm, pm, vturn_speed, coords, distances, route_speeds, speed_distances):
 
     self.update_params()
     if sm.alive['carState'] and sm.alive['selfdriveState']:
@@ -1315,12 +1296,15 @@ class CarrotServ:
       (atc_desired, "atc"),
       (atc_desired_next, "atc2"),
       (sdi_speed, "hda" if hda_active else "bump" if self.xSpdType == 22 else "section" if self.xSpdType == 4 else "cam"),
-      (abs(vturn_speed), "vturn"),
     ]
-    #if len(route_speeds) > 0:
-    #  print(" ".join(str(round(speed, 1)) for speed in route_speeds))
-    #for dist, speed in zip(distances, route_speeds):
-    #  speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
+    if self.turnSpeedControlMode in [1,2]:
+      speed_n_sources.append((abs(vturn_speed), "vturn"))
+
+    if self.turnSpeedControlMode in [2,3]:
+      #if len(route_speeds) > 0:
+      #  print(" ".join(str(round(speed, 1)) for speed in route_speeds))
+      for dist, speed in zip(speed_distances, route_speeds):
+        speed_n_sources.append((self.calculate_current_speed(dist, speed, 0, self.autoNaviSpeedDecelRate), "route"))
 
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])
 
