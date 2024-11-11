@@ -614,19 +614,6 @@
     },
     {
       "group": "화면",
-      "name": "ShowDeviceState",
-      "title": "디바이스정보",
-      "descr": "",
-      "egroup": "DISP",
-      "etitle": "Show Device Info",
-      "edescr": "",
-      "min": 0,
-      "max": 1,
-      "default": 0,
-      "unit": 1
-    },
-    {
-      "group": "화면",
       "name": "ShowCustomBrightness",
       "title": "화면밝기비율",
       "descr": "",
@@ -1092,6 +1079,19 @@
       "max": 3,
       "default": 1,
       "unit": 1
+    },
+    {
+      "group": "감속제어",
+      "name": "MapTurnSpeedFactor",
+      "title": "경로턴속도반영비율(90%)",
+      "descr": "작으면 속도가 줄어듬",
+      "egroup": "SPEED",
+      "etitle": "MapTurnSpeedFactor",
+      "edescr": "",
+      "min": 50,
+      "max": 300,
+      "default": 90,
+      "unit": 10
     },
     {
       "group": "감속제어",

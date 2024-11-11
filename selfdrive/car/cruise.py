@@ -15,7 +15,7 @@ GearShifter = structs.CarState.GearShifter
 V_CRUISE_MIN = 8
 V_CRUISE_MAX = 145
 V_CRUISE_UNSET = 255
-V_CRUISE_INITIAL = 20
+V_CRUISE_INITIAL = 40
 V_CRUISE_INITIAL_EXPERIMENTAL_MODE = 105
 IMPERIAL_INCREMENT = round(CV.MPH_TO_KPH, 1)  # round here to avoid rounding errors incrementing set speed
 
@@ -162,7 +162,7 @@ class VCruiseCarrot:
     self.is_metric = True
 
     self.v_ego_kph_set = 0
-    self._cruise_speed_min, self._cruise_speed_max = 0, 161
+    self._cruise_speed_min, self._cruise_speed_max = 5, 161
     self._cruise_speed_unit = 5
     self._cruise_button_mode = 2
 
@@ -287,7 +287,7 @@ class VCruiseCarrot:
           self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
           self.v_cruise_cluster_kph = CS.cruiseState.speedCluster * CV.MS_TO_KPH
         else:
-          self.v_cruise_kph = clip(v_cruise_kph, 20, self._cruise_speed_max)
+          self.v_cruise_kph = clip(v_cruise_kph, 30, self._cruise_speed_max)
           self.v_cruise_cluster_kph = self.v_cruise_kph
     else:
       self.v_cruise_kph = 20 #V_CRUISE_UNSET
@@ -577,13 +577,15 @@ class VCruiseCarrot:
         self._cruise_control(1, -1 if self.v_ego_kph_set < 1 else 0, "Cruise on (lead car)")
 
     elif not CC.enabled and self._brake_pressed_count < 0 and self._gas_pressed_count < 0:
-      if self.v_rel < -0.2 and 0 < self.d_rel < CS.vEgo ** 2 / (2.0 * 2):
+      if self.v_rel < -0.2 and 0 < self.d_rel < CS.vEgo ** 2 / (1.5 * 2):
         self._cruise_control(1, -1, "Cruise on (fcw)")
       elif CS.vEgo > 0.02 and 0 < self.d_rel < 4:
         self._cruise_control(1, -1, "Cruise on (fcw dist)")
         #self.events.append(EventName.stopStop)
       elif self.desiredSpeed < self.v_ego_kph_set:
         self._cruise_control(1, -1, "Cruise on (desired speed)")
+      else:
+        self._add_log("leadCar d={:.1f},v={:.1f}".format(self.d_rel, self.v_rel))
 
     if self._gas_pressed_count > self._gas_tok_timer:
       if CS.aEgo < -0.5:

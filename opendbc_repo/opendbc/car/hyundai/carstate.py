@@ -607,11 +607,11 @@ class CarState(CarStateBase):
           ("ADRV_0x1ea", 20),
           ("ADRV_0x160", 20),
         ]
-    if CP.extFlags & HyundaiExtFlags.CANFD_161:
-      messages += [
-        ("ADRV_0x161", 20),
-        ("CORNER_RADAR_HIGHWAY", 20),
-      ]
+      if CP.extFlags & HyundaiExtFlags.CANFD_161:
+        messages += [
+          ("ADRV_0x161", 20),
+          ("CORNER_RADAR_HIGHWAY", 20),
+        ]
 
     #if not (CP.flags & HyundaiFlags.CANFD_HDA2) and CP.extFlags & HyundaiExtFlags.NAVI_CLUSTER.value and (CP.extFlags & HyundaiExtFlags.SCC_BUS2.value) :
     #  messages.append(("CLUSTER_SPEED_LIMIT", 10))

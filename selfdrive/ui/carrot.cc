@@ -1798,7 +1798,7 @@ public:
     int     nRoadLimitSpeed = 30;
     int     xSpdLimit = 0;
     int     xSignType = -1;
-    QPointF nav_path_vertex[100];
+    QPointF nav_path_vertex[150];
     int     nav_path_vertex_count = 0;
 
     void updateState(UIState *s) {
@@ -1840,16 +1840,21 @@ public:
             QString naviPaths = QString::fromStdString(carrot_man.getNaviPaths());
             QStringList pairs = naviPaths.split(";");
             nav_path_vertex_count = 0;
+            const auto lane_lines = model.getLaneLines();
+            int max_z = lane_lines[2].getZ().size();
+            float z_offset = 0.0;
             foreach(const QString & pair, pairs) {
                 QStringList xy = pair.split(",");  // ","로 x와 y 구분                
                 if (xy.size() == 3) {
-                    printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
+                    //printf("coords = x: %.1f, y: %.1f, d:%.1f\n", xy[0].toFloat(), xy[1].toFloat(), xy[2].toFloat());
                     float x = xy[0].toFloat();
                     float y = xy[1].toFloat();
                     float d = xy[2].toFloat();                    
-                    int idx = get_path_length_idx(model_position, d);
+                    int idx = get_path_length_idx(lane_lines[2], d);
 
-                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, model_position.getZ()[idx]+1.22, &nav_path_vertex[nav_path_vertex_count++]);
+                    if (idx >= max_z) z_offset -= 0.05;
+                    _model->mapToScreen((x<3.0) ? 5.0 : x, y, lane_lines[2].getZ()[idx] + z_offset, &nav_path_vertex[nav_path_vertex_count++]);
+                    if(nav_path_vertex_count >= 150) break;
                 }
             }
             auto meta = sm["modelV2"].getModelV2().getMeta();
@@ -1893,19 +1898,21 @@ public:
         }
     }
     void drawNaviPath(UIState* s) {
-        /*
+#if 0
         if (nav_path_vertex_count > 0) {
 			nvgBeginPath(s->vg);
 			nvgMoveTo(s->vg, nav_path_vertex[0].x(), nav_path_vertex[0].y());
 			for (int i = 1; i < nav_path_vertex_count; i++) {
-				nvgLineTo(s->vg, nav_path_vertex[i].x(), nav_path_vertex[i].y());
+                float x = nav_path_vertex[i].x();
+                float y = nav_path_vertex[i].y();
+                if (isnan(x) || isnan(y)) continue;
+                nvgLineTo(s->vg, x, y);
 			}
 			nvgStrokeColor(s->vg, COLOR_GREEN);
 			nvgStrokeWidth(s->vg, 20.0f);
 			nvgStroke(s->vg);
 		}
-        */
-
+#else
         if (nav_path_vertex_count > 1) {
             for(int i = 1; i < nav_path_vertex_count; i++) {
                 float x = nav_path_vertex[i].x();
@@ -1917,6 +1924,7 @@ public:
                 nvgFill(s->vg);
 			}
         }
+#endif
     }
     char    cruise_speed_last[32] = "";
     char    driving_mode_str_last[32] = "";
@@ -2084,6 +2092,9 @@ public:
             ui_fill_rect(s->vg, { dx - 55, dy - 38, 110, 48 }, COLOR_BLUE_ALPHA(210), 15, 2);
             ui_draw_text(s, dx, dy, "APM", 40, COLOR_WHITE, BOLD);
         }
+        if (nav_path_vertex_count > 0) {
+            ui_draw_text(s, dx, dy - 45, "ROUTE", 30, COLOR_WHITE, BOLD);
+		}
 #ifdef __UI_TEST
         active_carrot = 2;
         nRoadLimitSpeed = 30;
