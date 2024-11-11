@@ -965,10 +965,11 @@ protected:
 
         int tbt_x = s->fb_w - 800;
         int tbt_y = s->fb_h - 300;
-        ui_fill_rect(s->vg, { tbt_x, tbt_y - 60, 790, 240 + 60 }, COLOR_BLACK_ALPHA(120), 30);
+        NVGcolor stroke_color = COLOR_WHITE;
+        ui_fill_rect(s->vg, { tbt_x, tbt_y - 60, 790, 240 + 60 }, COLOR_BLACK_ALPHA(120), 30, 2, &stroke_color);
         if (szPosRoadName.length() > 0) {
             nvgTextAlign(s->vg, NVG_ALIGN_LEFT | NVG_ALIGN_BOTTOM);
-            ui_draw_text(s, tbt_x + 90, tbt_y - 5, szPosRoadName.toStdString().c_str(), 30, COLOR_WHITE, BOLD);
+            ui_draw_text(s, tbt_x + 90, tbt_y - 15, szPosRoadName.toStdString().c_str(), 30, COLOR_WHITE, BOLD);
             //ui_draw_text(s, tbt_x + 190, tbt_y - 5, szPosRoadName.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
         }
 
@@ -977,7 +978,7 @@ protected:
             int bx = tbt_x + 100;
             int by = tbt_y + 85;
             if (atc_type.length() > 0) {
-                ui_fill_rect(s->vg, { bx - 80, by - 85, 160, 230 }, atc_type.contains("prepare")?COLOR_GREEN_ALPHA(100) : COLOR_GREEN, 15);
+                ui_fill_rect(s->vg, { bx - 80, by - 90, 160, 230 }, atc_type.contains("prepare")?COLOR_GREEN_ALPHA(100) : COLOR_GREEN, 15);
             }
             switch (xTurnInfo) {
             case 1: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_l", 1.0f); break;
@@ -1935,8 +1936,15 @@ public:
 
         int bx = x;
         int by = y + 270;
-
-        ui_fill_rect(s->vg, { bx - 120, by - 220, 475, 425}, COLOR_BLACK_ALPHA(90), 30);
+#ifdef __UI_TEST
+        xSpdLimit = 50;
+        xSignType = 1;
+#endif
+        bool cam_detected = false;
+        if (xSpdLimit > 0 && xSignType != 22) cam_detected = true;
+        NVGcolor stroke_color = COLOR_WHITE;
+        NVGcolor bg_color = (cam_detected && blink_timer > 8)?COLOR_RED_ALPHA(180):COLOR_BLACK_ALPHA(90);
+        ui_fill_rect(s->vg, { bx - 120, by - 220, 475, 425},  bg_color, 30, 2, &stroke_color);
 
 
         // draw traffic light
@@ -2109,19 +2117,19 @@ public:
             dy = by - 165;
             mode_color = COLOR_GREEN_ALPHA(190);
             ui_fill_rect(s->vg, { dx - 65, dy - 38, 130, 90 }, (cpuTemp>80 && blink_timer<=8)?COLOR_RED : mode_color, 15, 2);
-            ui_draw_text(s, dx, dy, "CPU", 30, COLOR_WHITE, BOLD);
+            ui_draw_text(s, dx, dy - 5, "CPU", 25, COLOR_WHITE, BOLD);
             sprintf(str, "%.0f\u00B0C", cpuTemp);
             ui_draw_text(s, dx, dy + 40, str, 40, COLOR_WHITE, BOLD);
 
             dx += 150;
             ui_fill_rect(s->vg, { dx - 65, dy - 38, 130, 90 }, (memoryUsage > 85 && blink_timer <= 8) ? COLOR_RED : mode_color, 15, 2);
-            ui_draw_text(s, dx, dy, "MEM", 30, COLOR_WHITE, BOLD);
+            ui_draw_text(s, dx, dy - 5, "MEM", 25, COLOR_WHITE, BOLD);
             sprintf(str, "%d%%", memoryUsage);
             ui_draw_text(s, dx, dy + 40, str, 40, COLOR_WHITE, BOLD);
 
             dx += 150;
             ui_fill_rect(s->vg, { dx - 65, dy - 38, 130, 90 }, mode_color, 15, 2);
-            ui_draw_text(s, dx, dy, "DISK", 30, COLOR_WHITE, BOLD);
+            ui_draw_text(s, dx, dy - 5, "DISK", 25, COLOR_WHITE, BOLD);
             sprintf(str, "%.0f%%", 100 - freeSpace);
             ui_draw_text(s, dx, dy + 40, str, 40, COLOR_WHITE, BOLD);
         }

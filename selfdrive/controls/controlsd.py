@@ -74,7 +74,9 @@ class Controls:
     # Update VehicleModel
     lp = self.sm['liveParameters']
     x = max(lp.stiffnessFactor, 0.1)
-    sr = max(lp.steerRatio, 0.1)
+    #sr = max(lp.steerRatio, 0.1)
+    steer_ratio = self.params.get_float("CustomSR") / 10.0
+    sr = max(steer_ratio if steer_ratio > 1.0 else lp.steerRatio, 0.1)
     self.VM.update_params(x, sr)
 
     # Update Torque Params

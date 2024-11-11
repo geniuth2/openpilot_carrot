@@ -106,7 +106,7 @@ def create_steering_messages_camera_scc(packer, CP, CAN, enabled, lat_active, ap
   if True:
     values = {}
     values["LKA_MODE"] = 2
-    values["LKA_ICON"] = 2 if enabled else 1
+    values["LKA_ICON"] = 2 if lat_active else 1
     values["TORQUE_REQUEST"] = apply_steer
     values["STEER_REQ"] = 1 if lat_active else 0
     values["VALUE64"] = 0  # STEER_MODE, NEW_SIGNAL_2
@@ -291,7 +291,7 @@ def create_acc_control_scc2(packer, CAN, enabled, accel_last, accel, stopping, g
   #values["SET_ME_3"] = 0x3  # objRelsped와 충돌
   values["SET_ME_TMP_64"] = 0x64
 
-  #values["NEW_SIGNAL_3"] = 0  # 1이되면 차선이탈방지 알람이 뜬다고...  => 앞에 차가 있으면, 1또는 2가 됨. 전방두부?
+  values["NEW_SIGNAL_3"] = 1 if hud_control.leadVisible else 0 #0  # 1이되면 차선이탈방지 알람이 뜬다고...  => 앞에 차가 있으면, 1또는 2가 됨. 전방두부?
   
   #values["NEW_SIGNAL_4"] = 2
 
@@ -416,14 +416,20 @@ def create_adrv_messages(CP, packer, CAN, frame, CC, CS, hud_control):
           #values["CRUISE_INFO10_SET1"] = 1
           #values["CRUISE_INFO11_SET1"] = 1
 
+          values["AUTO_LANE_CHANGE_MESSAGE_SET6"] = 0 # 1: 핸들잡아, 2: 빨리잡아, 6: 자동차선변경준비.
+
           values["CRUISE_INFO7_HWAY_SET2_ELSE_0"] = 0
           values["CRUISE_INFO9_HWAY_SET2_ELSE_0"] = 0
           #values["NEW_SIGNAL_HWAY_SET1_ELSE_0"] = 1
 
-          #values["CRUISE_INFO10_0_TO_4"] = 4 if main_enabled else 0      # message
-          #values["CRUISE_INFO11_0_TO_1"] = 1 if cruise_enabled else 0    # message
+          values["CRUISE_INFO10_0_TO_4"] = 0 #4 if main_enabled else 0      # message
+          values["CRUISE_INFO11_0_TO_1"] = 0 #1 if cruise_enabled else 0    # message
           values["143_SET_0"] = 0
 
+          #LANE_ASSIST_L,R: 0:OFF, 1: GREY, 2: GREEN, 4: WHITE
+          values["LANE_ASSIST_L"] = 2
+          values["LANE_ASSIST_R"] = 2
+          
           ret.append(packer.make_can_msg("ADRV_0x161", CAN.ECAN, values))
         else:
           print("no adrv_info_161")
