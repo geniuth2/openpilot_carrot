@@ -768,7 +768,7 @@ class CarrotServ:
     self.active_carrot = 0     ## 1: CarrotMan Active, 2: sdi active , 3: speed decel active, 4: section active, 5: bump active, 6: speed limit active
     self.active_count = 0
     self.active_sdi_count = 0
-    self.active_sdi_count_max = 80
+    self.active_sdi_count_max = 200 # 20 sec
     
     self.nSdiType = -1
     self.nSdiSpeedLimit = 0

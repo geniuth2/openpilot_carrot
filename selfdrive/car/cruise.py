@@ -585,7 +585,7 @@ class VCruiseCarrot:
       elif self.desiredSpeed < self.v_ego_kph_set:
         self._cruise_control(1, -1, "Cruise on (desired speed)")
       else:
-        self._add_log("leadCar d={:.1f},v={:.1f}".format(self.d_rel, self.v_rel))
+        self._add_log("leadCar d={:.1f},v={:.1f},{:.1f}, {:.1f}".format(self.d_rel, self.v_rel, CS.vEgo*3.6,  CS.vEgo ** 2 / (1.5 * 2)))
 
     if self._gas_pressed_count > self._gas_tok_timer:
       if CS.aEgo < -0.5:
