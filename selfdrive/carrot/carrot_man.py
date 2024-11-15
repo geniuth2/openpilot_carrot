@@ -296,9 +296,11 @@ class CarrotMan:
 
   def carrot_navi_route(self):
    
-    if not self.navi_points_active or not SHAPELY_AVAILABLE:
+    if not self.navi_points_active or not SHAPELY_AVAILABLE or self.carrot_serv.active_carrot > 1:
       haversine_cache.clear()
       curvature_cache.clear()
+      self.navi_points = []
+      self.navi_points_active = False
       return [],[],300
 
     current_position = (self.carrot_serv.vpPosPointLon, self.carrot_serv.vpPosPointLat)
@@ -325,12 +327,12 @@ class CarrotMan:
         curvatures = []
         distances = []
         distance = 10.0
-        if len(resampled_points) >= 5:
+        if len(resampled_points) >= 7:
             # Calculate curvatures and speeds based on curvature
             speeds = []
-            for i in range(len(resampled_points) - 4):
+            for i in range(len(resampled_points) - 6):
                 distance += distance_interval
-                p1, p2, p3 = resampled_points[i], resampled_points[i + 2], resampled_points[i + 4]
+                p1, p2, p3 = resampled_points[i], resampled_points[i + 3], resampled_points[i + 6]
                 curvature = calculate_curvature(p1, p2, p3)
                 curvatures.append(curvature)
                 speed = interp(abs(curvature), V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
@@ -353,10 +355,10 @@ class CarrotMan:
                   time_wait = - time_delay
 
                 # Calculate time interval for the current segment based on speed
-                time_interval = distance_interval / (next_out_speed / 3.6) if target_speed > 0 else 0
+                time_interval = distance_interval / (next_out_speed / 3.6) if next_out_speed > 0 else 0
 
                 time_wait += time_interval
-                time_interval = max(0, time_interval + time_wait)
+                time_interval = min(time_interval, max(0, time_interval + time_wait))
 
                 # Calculate maximum allowed speed with acceleration limit
                 max_allowed_speed = next_out_speed + (accel_limit_kmh * time_interval)
