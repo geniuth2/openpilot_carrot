@@ -345,7 +345,7 @@ class CarrotMan:
             out_speeds = [0] * len(speeds)
             out_speeds[-1] = speeds[-1]  # Set the last speed as the initial value
 
-            time_delay = self.carrot_serv.AutoTurnControlTurnEnd
+            time_delay = self.carrot_serv.autoTurnControlTurnEnd
             time_wait = 0
             for i in range(len(speeds) - 2, -1, -1):
                 target_speed = speeds[i]
