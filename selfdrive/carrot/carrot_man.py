@@ -340,12 +340,12 @@ class CarrotMan:
                 distances.append(distance)
 
             # Apply acceleration limits in reverse to adjust speeds
-            accel_limit = 1.5  # m/s^2
+            accel_limit = self.carrot_serv.autoNaviSpeedDecelRate # m/s^2
             accel_limit_kmh = accel_limit * 3.6  # Convert to km/h per second
             out_speeds = [0] * len(speeds)
             out_speeds[-1] = speeds[-1]  # Set the last speed as the initial value
 
-            time_delay = self.carrot_serv.autoTurnControlTurnEnd
+            time_delay = self.carrot_serv.autoNaviSpeedBumpTime
             time_wait = 0
             for i in range(len(speeds) - 2, -1, -1):
                 target_speed = speeds[i]
