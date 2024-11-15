@@ -39,11 +39,11 @@ V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 35, 25, 10]
 #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 
 # Haversine formula to calculate distance between two GPS coordinates
-haversine_cache = {}
+#haversine_cache = {}
 def haversine(lon1, lat1, lon2, lat2):
-    key = (lon1, lat1, lon2, lat2)
-    if key in haversine_cache:
-        return haversine_cache[key]
+    #key = (lon1, lat1, lon2, lat2)
+    #if key in haversine_cache:
+    #    return haversine_cache[key]
 
     R = 6371000  # Radius of Earth in meters
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -53,7 +53,7 @@ def haversine(lon1, lat1, lon2, lat2):
     a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     distance = 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    haversine_cache[key] = distance
+    #haversine_cache[key] = distance
     return distance
 
 
@@ -85,6 +85,7 @@ def get_path_after_distance(start_index, coordinates, current_position, distance
     closest_index = -1
     closest_point = None
     min_distance = float('inf')
+
     start_index = max(0, start_index - 2)
 
     # 가까운 점만 탐색하도록 수정
@@ -158,11 +159,11 @@ def gps_to_relative_xy(gps_path, reference_point, heading_deg):
 
 
 # Calculate curvature given three points using a faster vector-based method
-curvature_cache = {}
+#curvature_cache = {}
 def calculate_curvature(p1, p2, p3):
-    key = (p1, p2, p3)
-    if key in curvature_cache:
-        return curvature_cache[key]
+    #key = (p1, p2, p3)
+    #if key in curvature_cache:
+    #    return curvature_cache[key]
 
     v1 = (p2[0] - p1[0], p2[1] - p1[1])
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
@@ -176,7 +177,7 @@ def calculate_curvature(p1, p2, p3):
     else:
         curvature = cross_product / (len_v1 * len_v2 * len_v1)
 
-    curvature_cache[key] = curvature
+    #curvature_cache[key] = curvature
     return curvature
 
 class CarrotMan:
@@ -297,8 +298,8 @@ class CarrotMan:
   def carrot_navi_route(self):
    
     if not self.navi_points_active or not SHAPELY_AVAILABLE or self.carrot_serv.active_carrot <= 1:
-      haversine_cache.clear()
-      curvature_cache.clear()
+      #haversine_cache.clear()
+      #curvature_cache.clear()
       self.navi_points = []
       self.navi_points_active = False
       return [],[],300
@@ -345,7 +346,7 @@ class CarrotMan:
             out_speeds = [0] * len(speeds)
             out_speeds[-1] = speeds[-1]  # Set the last speed as the initial value
 
-            time_delay = self.carrot_serv.autoNaviSpeedBumpTime
+            time_delay = self.carrot_serv.autoNaviSpeedCtrlEnd
             time_wait = 0
             for i in range(len(speeds) - 2, -1, -1):
                 target_speed = speeds[i]
@@ -1184,7 +1185,7 @@ class CarrotServ:
     self.last_calculate_gps_time = now
     self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
 
-    self.debugText = " {:.1f},{:.1f}={:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
+    self.debugText = " {} {:.1f},{:.1f}={:.1f}+{:.1f}".format(self.active_sdi_count, self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
     #print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
     return float(bearing_calculated)
 
