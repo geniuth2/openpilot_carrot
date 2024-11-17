@@ -1062,7 +1062,7 @@
       "egroup": "SPEED",
       "etitle": "NaviSpeedDecelRate 0.01m/s^2x(200)",
       "edescr": "",
-      "min": 100,
+      "min": 10,
       "max": 300,
       "default": 160,
       "unit": 10
