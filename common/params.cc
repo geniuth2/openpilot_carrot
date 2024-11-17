@@ -309,6 +309,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"steerFactor", PERSISTENT},
     {"TrafficStopDistanceAdjust", PERSISTENT},
     {"TargetLatA", PERSISTENT},
+    {"AutoNaviRouteDecelEnd", PERSISTENT},
 };
 
 } // namespace

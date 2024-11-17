@@ -1004,6 +1004,19 @@
     },
     {
       "group": "감속제어",
+      "name": "AutoNaviRouteDecelEnd",
+      "title": "경로감속 완료시간(3초)",
+      "descr": "경로감속종료시점을 설정합니다.",
+      "egroup": "SPEED",
+      "etitle": "RouteSpeedEndingPoint(12s)",
+      "edescr": "Deceleration completion point",
+      "min": 1,
+      "max": 20,
+      "default": 3,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "AutoNaviSpeedCtrlEnd",
       "title": "과속카메라감속 완료 시간(12초)",
       "descr": "감속종료시점을 설정합니다.",

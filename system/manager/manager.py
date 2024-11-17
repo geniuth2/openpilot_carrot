@@ -28,6 +28,7 @@ def get_default_params():
     ("steerFactor", "86"),
     ("TrafficStopDistanceAdjust", "90"),
     ("TargetLatA", "190"),
+    ("AutoNaviRouteDecelEnd", "3"),
     ("CompletedTrainingVersion", "0"),
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),

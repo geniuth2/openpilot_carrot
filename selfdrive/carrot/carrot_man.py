@@ -35,7 +35,7 @@ TARGET_LAT_A = 1.9  # m/s^2
 ################ CarrotNavi
 ## 국가법령정보센터: 도로설계기준
 V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
-V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 35, 25, 10]
+V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 30, 20, 5]
 #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 
 # Haversine formula to calculate distance between two GPS coordinates
@@ -328,15 +328,18 @@ class CarrotMan:
         curvatures = []
         distances = []
         distance = 10.0
-        if len(resampled_points) >= 7:
+        sample = 4
+        if len(resampled_points) >= sample * 2 + 1:
             # Calculate curvatures and speeds based on curvature
             speeds = []
-            for i in range(len(resampled_points) - 6):
+            for i in range(len(resampled_points) - sample * 2):
                 distance += distance_interval
-                p1, p2, p3 = resampled_points[i], resampled_points[i + 3], resampled_points[i + 6]
+                p1, p2, p3 = resampled_points[i], resampled_points[i + sample], resampled_points[i + sample * 2]
                 curvature = calculate_curvature(p1, p2, p3)
                 curvatures.append(curvature)
                 speed = interp(abs(curvature), V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
+                if abs(curvature) < 0.02:
+                  speed = max(speed, self.carrot_serv.nRoadLimitSpeed)
                 speeds.append(speed)
                 distances.append(distance)
 
@@ -346,7 +349,7 @@ class CarrotMan:
             out_speeds = [0] * len(speeds)
             out_speeds[-1] = speeds[-1]  # Set the last speed as the initial value
 
-            time_delay = self.carrot_serv.autoNaviSpeedCtrlEnd
+            time_delay = self.carrot_serv.AutoNaviRouteDecelEnd
             time_wait = 0
             for i in range(len(speeds) - 2, -1, -1):
                 target_speed = speeds[i]
@@ -358,12 +361,14 @@ class CarrotMan:
                 # Calculate time interval for the current segment based on speed
                 time_interval = distance_interval / (next_out_speed / 3.6) if next_out_speed > 0 else 0
 
-                time_wait += time_interval
-                time_interval = min(time_interval, max(0, time_interval + time_wait))
+                time_apply = min(time_interval, max(0, time_interval + time_wait))
 
                 # Calculate maximum allowed speed with acceleration limit
-                max_allowed_speed = next_out_speed + (accel_limit_kmh * time_interval)
+                max_allowed_speed = next_out_speed + (accel_limit_kmh * time_apply)
                 adjusted_speed = min(target_speed, max_allowed_speed)
+                
+                #time_wait += time_interval
+                time_wait += min(2.0, time_interval)
 
                 out_speeds[i] = adjusted_speed
 
@@ -1350,16 +1355,17 @@ class CarrotServ:
 
     if self.turnSpeedControlMode in [2,3]:
       speed_n_sources.append((route_speed * self.mapTurnSpeedFactor, "route"))
+      #speed_n_sources.append((self.calculate_current_speed(dist, speed * self.mapTurnSpeedFactor, 0, 1.2), "route"))
 
     desired_speed, source = min(speed_n_sources, key=lambda x: x[0])
 
     if CS is not None:
-      if source != self.source_last:
-        self.gas_override_speed = 0
-      elif desired_speed > 200 or source in ["cam", "section"] or CS.brakePressed:
+      #if source != self.source_last:
+      #  self.gas_override_speed = 0
+      if desired_speed > 150 or source in ["cam", "section"] or CS.brakePressed:
         self.gas_override_speed = 0
       elif CS.gasPressed:
-        self.gas_override_speed = 0 #v_ego_kph
+        self.gas_override_speed = max(v_ego_kph, self.gas_override_speed)
       self.source_last = source
 
       if desired_speed < self.gas_override_speed:
