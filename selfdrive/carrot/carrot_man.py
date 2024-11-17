@@ -348,14 +348,16 @@ class CarrotMan:
             accel_limit_kmh = accel_limit * 3.6  # Convert to km/h per second
             out_speeds = [0] * len(speeds)
             out_speeds[-1] = speeds[-1]  # Set the last speed as the initial value
+            v_ego_kph = self.sm['carState'].vEgo * 3.6
 
-            time_delay = self.carrot_serv.AutoNaviRouteDecelEnd
+            time_delay = self.carrot_serv.autoNaviRouteDecelEnd
             time_wait = 0
             for i in range(len(speeds) - 2, -1, -1):
                 target_speed = speeds[i]
                 next_out_speed = out_speeds[i + 1]
 
                 if target_speed < next_out_speed:
+                  time_delay = max(0, ((v_ego_kph - target_speed) / accel_limit_kmh))
                   time_wait = - time_delay
 
                 # Calculate time interval for the current segment based on speed
@@ -865,6 +867,7 @@ class CarrotServ:
     self.autoNaviCountDownMode = self.params.get_int("AutoNaviCountDownMode")
     self.turnSpeedControlMode= self.params.get_int("TurnSpeedControlMode")
     self.mapTurnSpeedFactor= self.params.get_float("MapTurnSpeedFactor") * 0.01
+    self.autoNaviRouteDecelEnd = float(self.params.get_int("AutoNaviRouteDecelEnd"))
 
     self.autoTurnControlSpeedTurn = self.params.get_int("AutoTurnControlSpeedTurn")
     #self.autoTurnMapChange = self.params.get_int("AutoTurnMapChange")
