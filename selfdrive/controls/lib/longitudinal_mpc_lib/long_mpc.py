@@ -369,7 +369,7 @@ class LongitudinalMpc:
 
     self.params[:,0] = ACCEL_MIN if not reset_state else a_ego
     # negative accel constraint causes problems because negative speed is not allowed
-    self.params[:,1] = max(0.0, self.max_a) if not reset_state else a_ego
+    self.params[:,1] = max(0.0, self.max_a if not reset_state else a_ego)
 
     # Update in ACC mode or ACC/e2e blend
     if mode == 'acc':
