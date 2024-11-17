@@ -1193,7 +1193,7 @@ class CarrotServ:
     self.last_calculate_gps_time = now
     self.vpPosPointLat, self.vpPosPointLon = self.estimate_position(float(self.vpPosPointLat), float(self.vpPosPointLon), v_ego, bearing_calculated, dt)
 
-    self.debugText = " {} {:.1f},{:.1f}={:.1f}+{:.1f}".format(self.active_sdi_count, self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
+    #self.debugText = " {} {:.1f},{:.1f}={:.1f}+{:.1f}".format(self.active_sdi_count, self.nPosAngle, bearing_calculated, bearing, self.bearing_offset)
     #print("nPosAngle = {:.1f},{:.1f} = {:.1f}+{:.1f}".format(self.nPosAngle, bearing_calculated, bearing, self.bearing_offset))
     return float(bearing_calculated)
 
@@ -1374,6 +1374,8 @@ class CarrotServ:
       if desired_speed < self.gas_override_speed:
         source = "gas"
         desired_speed = self.gas_override_speed
+
+      self.debugText = f"desired={desired_speed:.1f},{source},g={self.gas_override_speed:.0f}"      
 
     left_spd_sec = 100
     left_tbt_sec = 100
