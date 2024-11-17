@@ -577,7 +577,7 @@ class VCruiseCarrot:
         self._cruise_control(1, -1 if self.v_ego_kph_set < 1 else 0, "Cruise on (lead car)")
 
     elif not CC.enabled and self._brake_pressed_count < 0 and self._gas_pressed_count < 0:
-      if self.v_rel < -0.2 and 0 < self.d_rel < CS.vEgo ** 2 / (1.5 * 2):
+      if self.v_rel < -0.2 and CS.vEgo / 1.5 > (self.d_rel - 4.0) / (- self.v_rel): # 0 < self.d_rel < CS.vEgo ** 2 / (1.5 * 2):
         self._cruise_control(1, -1, "Cruise on (fcw)")
       elif CS.vEgo > 0.02 and 0 < self.d_rel < 4:
         self._cruise_control(1, -1, "Cruise on (fcw dist)")
@@ -616,7 +616,7 @@ class VCruiseCarrot:
     if CS.brakePressed:
       self._cruise_ready = False
       self._brake_pressed_count = max(1, self._brake_pressed_count + 1)
-      if self._brake_pressed_count == 1 and CC.enabled:
+      if self._brake_pressed_count == 1: # and CC.enabled:
         self._v_cruise_kph_at_brake = self.v_cruise_kph
       self._soft_hold_count = self._soft_hold_count + 1 if CS.vEgo < 0.1 and CS.gearShifter == GearShifter.drive else 0
       if self.autoCruiseControl == 0 or self.CP.pcmCruise:
