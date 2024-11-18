@@ -81,7 +81,11 @@ static void gm_rx_hook(const CANPacket_t *to_push) {
     }
 
     if ((addr == 0xC9) && ((gm_hw == GM_CAM) || (gm_hw == GM_SDGM))) {
-      brake_pressed = GET_BIT(to_push, 40U);
+      brake_pressed = GET_BIT(to_push, 40U) != 0U;
+    }
+
+    if (addr == 0xC9) {
+      acc_main_on = GET_BIT(to_push, 29U) != 0U;
     }
 
     if (addr == 0x1C4) {
@@ -174,15 +178,28 @@ static bool gm_tx_hook(const CANPacket_t *to_send) {
   // GAS/REGEN: safety check
   if (addr == 0x2CB) {
     bool apply = GET_BIT(to_send, 0U);
-    int gas_regen = ((GET_BYTE(to_send, 2) & 0x7FU) << 5) + ((GET_BYTE(to_send, 3) & 0xF8U) >> 3);
+    if (gm_cc_long) {
+      int gas_regen = ((GET_BYTE(to_send, 1) & 0x1U) << 13) + ((GET_BYTE(to_send, 2) & 0xFFU) << 5) + ((GET_BYTE(to_send, 3) & 0xF8U) >> 3);
 
-    bool violation = false;
-    // Allow apply bit in pre-enabled and overriding states
-    violation |= !controls_allowed && apply;
-    violation |= longitudinal_gas_checks(gas_regen, *gm_long_limits);
+      bool violation = false;
+      // Allow apply bit in pre-enabled and overriding states
+      violation |= !controls_allowed && apply;
+      violation |= longitudinal_gas_checks(gas_regen, *gm_long_limits);
 
-    if (violation) {
-      tx = false;
+      if (violation) {
+        tx = false;
+      }
+    } else {
+      int gas_regen = ((GET_BYTE(to_send, 2) & 0x7FU) << 5) + ((GET_BYTE(to_send, 3) & 0xF8U) >> 3);
+
+      bool violation = false;
+      // Allow apply bit in pre-enabled and overriding states
+      violation |= !controls_allowed && apply;
+      violation |= longitudinal_gas_checks(gas_regen, *gm_long_limits);
+
+      if (violation) {
+        tx = false;
+      }
     }
   }
 
