@@ -35,7 +35,7 @@ TARGET_LAT_A = 1.9  # m/s^2
 ################ CarrotNavi
 ## 국가법령정보센터: 도로설계기준
 V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
-V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 30, 20, 5]
+V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 30, 15, 5]
 #V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 
 # Haversine formula to calculate distance between two GPS coordinates
@@ -1356,7 +1356,10 @@ class CarrotServ:
     if self.turnSpeedControlMode in [1,2]:
       speed_n_sources.append((abs(vturn_speed), "vturn"))
 
-    if self.turnSpeedControlMode in [2,3]:
+    if self.turnSpeedControlMode == 2:
+      if self.atcDist < 300:
+        speed_n_sources.append((route_speed * self.mapTurnSpeedFactor, "route"))
+    elif self.turnSpeedControlMode == 3:
       speed_n_sources.append((route_speed * self.mapTurnSpeedFactor, "route"))
       #speed_n_sources.append((self.calculate_current_speed(dist, speed * self.mapTurnSpeedFactor, 0, 1.2), "route"))
 
