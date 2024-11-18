@@ -199,9 +199,9 @@ class CarController(CarControllerBase):
             acc_engaged = CC.enabled
           # kans: 오토리쥼용 코드(18년식이후 차량엔 미작동. 버튼리쥼에는 필요함)
           if actuators.longControlState == LongCtrlState.starting:
-            if (self.frame - self.last_button_frame) * DT_CTRL > 0.2:
+            if (self.frame - self.last_button_frame) * DT_CTRL > 0.1:
               self.last_button_frame = self.frame
-              for i in range(12):
+              for i in range(20):
                 can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.POWERTRAIN, CS.buttons_counter, CruiseButtons.RES_ACCEL))
           # GasRegenCmdActive needs to be 1 to avoid cruise faults. It describes the ACC state, not actuation
           can_sends.append(gmcan.create_gas_regen_command(self.packer_pt, CanBus.POWERTRAIN, self.apply_gas, idx, acc_engaged, at_full_stop))
