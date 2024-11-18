@@ -2,7 +2,7 @@
 from openpilot.common.filter_simple import FirstOrderFilter
 
 from opendbc.can.packer import CANPacker
-from opendbc.car import DT_CTRL, apply_driver_steer_torque_limits, structs, create_gas_interceptor_command # GM, Pedal_Long
+from opendbc.car import Bus, DT_CTRL, apply_driver_steer_torque_limits, structs, create_gas_interceptor_command # GM, Pedal_Long
 from opendbc.car.gm import gmcan
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons, GMFlags, CC_ONLY_CAR, SDGM_CAR, EV_CAR, AccState, CAR # GM, Pedal_Long
@@ -26,8 +26,8 @@ BRAKE_PITCH_FACTOR_BP = [5., 10.] # [m/s] smoothly revert to planned accel at lo
 BRAKE_PITCH_FACTOR_V = [0., 1.] # [unitless in [0,1]]; don't touch
 
 class CarController(CarControllerBase):
-  def __init__(self, dbc_name, CP):
-    super().__init__(dbc_name, CP)
+  def __init__(self, dbc_names, CP):
+    super().__init__(dbc_names, CP)
     self.start_time = 0.
     self.apply_steer_last = 0
     self.apply_gas = 0
@@ -45,9 +45,9 @@ class CarController(CarControllerBase):
     self.params = CarControllerParams(self.CP)
     self.params_ = Params() # kans: button spam
 
-    self.packer_pt = CANPacker(DBC[self.CP.carFingerprint]['pt'])
-    self.packer_obj = CANPacker(DBC[self.CP.carFingerprint]['radar'])
-    self.packer_ch = CANPacker(DBC[self.CP.carFingerprint]['chassis'])
+    self.packer_pt = CANPacker(DBC[self.CP.carFingerprint][Bus.pt])
+    self.packer_obj = CANPacker(DBC[self.CP.carFingerprint][Bus.radar])
+    self.packer_ch = CANPacker(DBC[self.CP.carFingerprint][Bus.chassis])
 
     self.long_pitch = False
     self.use_ev_tables = False

@@ -1,5 +1,5 @@
 from opendbc.can.packer import CANPacker
-from opendbc.car import DT_CTRL, apply_driver_steer_torque_limits, common_fault_avoidance, make_tester_present_msg, structs
+from opendbc.car import Bus, DT_CTRL, apply_driver_steer_torque_limits, common_fault_avoidance, make_tester_present_msg, structs
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.common.numpy_fast import clip
 from opendbc.car.hyundai import hyundaicanfd, hyundaican
@@ -46,11 +46,11 @@ def process_hud_alert(enabled, fingerprint, hud_control):
 
 
 class CarController(CarControllerBase):
-  def __init__(self, dbc_name, CP):
-    super().__init__(dbc_name, CP)
+  def __init__(self, dbc_names, CP):
+    super().__init__(dbc_names, CP)
     self.CAN = CanBus(CP)
     self.params = CarControllerParams(CP)
-    self.packer = CANPacker(dbc_name)
+    self.packer = CANPacker(dbc_names[Bus.pt])
     self.angle_limit_counter = 0
 
     self.accel_last = 0
@@ -75,8 +75,6 @@ class CarController(CarControllerBase):
     self.button_spam1 = 8
     self.button_spam2 = 30
     self.button_spam3 = 1
-
-    self.suppress_lfa_counter = 0
 
   def update(self, CC, CS, now_nanos):
 
@@ -180,12 +178,8 @@ class CarController(CarControllerBase):
 
       # prevent LFA from activating on HDA2 by sending "no lane lines detected" to ADAS ECU
       if self.frame % 5 == 0 and hda2 and not camera_scc:
-        if self.CP.extFlags & HyundaiExtFlags.ACAN_PANDA.value:
-          self.suppress_lfa_counter += 1
-          can_sends.append(hyundaicanfd.create_suppress_lfa_scc2(self.packer, self.CAN, self.CP.flags & HyundaiFlags.CANFD_HDA2_ALT_STEERING, self.suppress_lfa_counter))
-        elif not camera_scc:
-          can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.hda2_lfa_block_msg,
-                                                            self.CP.flags & HyundaiFlags.CANFD_HDA2_ALT_STEERING))
+        can_sends.append(hyundaicanfd.create_suppress_lfa(self.packer, self.CAN, CS.hda2_lfa_block_msg,
+                                                          self.CP.flags & HyundaiFlags.CANFD_HDA2_ALT_STEERING))
 
       # LFA and HDA icons
       if self.frame % 5 == 0 and (not hda2 or hda2_long):

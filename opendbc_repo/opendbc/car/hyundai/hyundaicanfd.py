@@ -178,9 +178,9 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_steer):
 
   if CP.flags & HyundaiFlags.CANFD_HDA2:
     hda2_lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_HDA2_ALT_STEERING else "LKAS"
-    if CP.openpilotLongitudinalControl: # and not (CP.extFlags & HyundaiExtFlags.ACAN_PANDA.value):
+    if CP.openpilotLongitudinalControl: 
       ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
-    if not (CP.flags & HyundaiFlags.CAMERA_SCC.value) or CP.extFlags & HyundaiExtFlags.ACAN_PANDA.value:
+    if not (CP.flags & HyundaiFlags.CAMERA_SCC.value):
       ret.append(packer.make_can_msg(hda2_lkas_msg, CAN.ACAN, values))
   else:
     ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
@@ -464,8 +464,6 @@ def create_adrv_messages(CP, packer, CAN, frame, CC, CS, hud_control):
     return ret
   else:
     values = {}
-    if CP.extFlags & HyundaiExtFlags.ACAN_PANDA.value:
-      ret.append(packer.make_can_msg("ADRV_0x51", CAN.ACAN, values))
 
     ret.extend(create_fca_warning_light(CP, packer, CAN, frame))
     if frame % 5 == 0:

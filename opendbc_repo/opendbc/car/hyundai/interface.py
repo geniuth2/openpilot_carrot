@@ -1,5 +1,5 @@
 from panda import Panda
-from opendbc.car import get_safety_config, structs
+from opendbc.car import Bus, get_safety_config, structs
 from opendbc.car.hyundai.hyundaicanfd import CanBus
 from opendbc.car.hyundai.values import HyundaiFlags, CAR, DBC, CAMERA_SCC_CAR, CANFD_RADAR_SCC_CAR, \
                                                    CANFD_UNSUPPORTED_LONGITUDINAL_CAR, \
@@ -26,11 +26,6 @@ class CarInterface(CarInterfaceBase):
     if camera_scc > 0:
       ret.flags |= HyundaiFlags.CAMERA_SCC.value
       print("$$$CAMERA_SCC toggled...")
-    if camera_scc > 1:
-      ret.extFlags |= HyundaiExtFlags.ACAN_PANDA.value
-      print("$$$sub PANDA enabled...")
-      
-
 
     ret.carName = "hyundai"
 
@@ -158,7 +153,7 @@ class CarInterface(CarInterfaceBase):
 
     # Common longitudinal control setup
 
-    ret.radarUnavailable = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
+    ret.radarUnavailable = RADAR_START_ADDR not in fingerprint[1] or Bus.radar not in DBC[ret.carFingerprint]
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
 
     # carrot, if camera_scc enabled, enable openpilotLongitudinalControl
@@ -180,7 +175,7 @@ class CarInterface(CarInterfaceBase):
 
     # *** feature detection ***
     if ret.flags & HyundaiFlags.CANFD:
-      if candidate in (CAR.KIA_CARNIVAL_4TH_GEN) and hda2: ##카니발4th & hda2 인경우에만 BSM이 ADAS에서 나옴.
+      if candidate in (CAR.KIA_CARNIVAL_4TH_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN) and hda2: ##카니발4th & hda2 인경우에만 BSM이 ADAS에서 나옴.
         ret.extFlags |= HyundaiExtFlags.BSM_IN_ADAS.value
       print(f"$$$$$ CanFD ECAN = {CAN.ECAN}")
       if 0x1fa in fingerprint[CAN.ECAN]:

@@ -176,10 +176,8 @@ RxCheck hyundai_canfd_hda2_long_alt_buttons_rx_checks_scc2[] = {
 
 const int HYUNDAI_PARAM_CANFD_ALT_BUTTONS = 32;
 const int HYUNDAI_PARAM_CANFD_HDA2_ALT_STEERING = 128;
-const int HYUNDAI_PARAM_ACAN_PANDA = 512;
 bool hyundai_canfd_alt_buttons = false;
 bool hyundai_canfd_hda2_alt_steering = false;
-//bool hyundai_acan_panda = false;
 
 int canfd_tx_addr[32] = { 80, 81, 272, 282, 298, 352, 353, 354, 442, 485, 416, 437, 506, 474, 480, 490, 512, 676, 866, 837, 1402, 908, 1848, 0, };
 uint32_t canfd_tx_time[32] = { 0, };
@@ -204,11 +202,6 @@ static uint32_t hyundai_canfd_get_checksum(const CANPacket_t *to_push) {
 }
 
 static void hyundai_canfd_rx_hook(const CANPacket_t *to_push) {
-    if (hyundai_acan_panda) {
-        controls_allowed = true;
-        acc_main_on = true;
-        return;
-    }
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
@@ -307,8 +300,6 @@ static bool hyundai_canfd_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
-  if (hyundai_acan_panda) return tx;
-
   // steering
   const int steer_addr = (hyundai_canfd_hda2 && !hyundai_longitudinal) ? hyundai_canfd_hda2_get_lkas_addr() : 0x12a;
   if (addr == steer_addr) {
@@ -392,52 +383,6 @@ static int hyundai_canfd_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
   uint32_t now = microsecond_timer_get();
 
-  if (hyundai_acan_panda) {
-      if (bus_num == 0) {
-          bus_fwd = 2;
-          if (addr == 272 || addr == 80 || addr == 81 || addr == 866 || addr == 676) {
-              last_ts_lkas_msg_acan = now;
-              lkas_msg_acan_active = true;
-              //print("blocking\n");
-              bus_fwd = -1;
-          }
-      }
-      if (bus_num == 2) {
-          int i;
-          for (i = 0; i < addr_list_count2; i++) {
-              if (addr_list2[i] == addr) {
-                  break;
-              }
-          }
-          if (i == addr_list_count2) {
-              addr_list2[addr_list_count2] = addr;
-              addr_list_count2++;
-              print("acan_panda bus2_list=");
-              for (int j = 0; j < addr_list_count2; j++) { putui((uint32_t)addr_list2[j]); print(","); }
-              print("\n");
-          }
-
-          bus_fwd = 0;
-          if (addr == 272 || addr == 80 || addr == 81 || addr == 866 || addr == 676) {
-              if (now - last_ts_lkas_msg_acan < 200000) {
-                  bus_fwd = -1;
-              }
-              else lkas_msg_acan_active = false;
-          }
-          // carrot
-          // ADAS의 데이터가 LKAS로 보내지는것을 막음. 근데.. 이건 ECAN데이터들인데?
-          // 일단 삭제함.. 의미없어보임.
-          /*
-          if (lkas_msg_acan_active) {
-              if (addr == 353 || addr == 354 || addr == 908 || addr == 1402 || addr == 1848) {
-                  bus_fwd = -1;
-              }
-          }
-          */
-      }
-      return bus_fwd;
-  }
-
   if (bus_num == 0) {
     bus_fwd = 2;
   }
@@ -517,14 +462,6 @@ static int hyundai_canfd_fwd_hook(int bus_num, int addr) {
 }
 
 static safety_config hyundai_canfd_init(uint16_t param) {
-  hyundai_acan_panda = GET_FLAG(param, HYUNDAI_PARAM_ACAN_PANDA);
-  if (hyundai_acan_panda) {
-      //lkas_acan_panda_mode = true;
-      print("ACAN RED-PANDA MODE\n");
-      controls_allowed = true;
-      acc_main_on = true;
-      return (safety_config) { NULL, 0, NULL, 0 };
-  }
 
   hyundai_common_init(param);
 

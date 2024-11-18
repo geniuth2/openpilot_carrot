@@ -2,7 +2,7 @@
 from enum import Enum, IntFlag
 
 from opendbc.car.common.numpy_fast import interp
-from opendbc.car import dbc_dict, PlatformConfig, DbcDict, Platforms, CarSpecs
+from opendbc.car import Bus, PlatformConfig, DbcDict, Platforms, CarSpecs
 from opendbc.car.structs import CarParams
 from opendbc.car.docs_definitions import CarHarness, CarDocs, CarParts
 from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries
@@ -95,7 +95,11 @@ class GMCarSpecs(CarSpecs):
 
 @dataclass
 class GMPlatformConfig(PlatformConfig):
-  dbc_dict: DbcDict = field(default_factory=lambda: dbc_dict('gm_global_a_powertrain_generated', 'gm_global_a_object', chassis_dbc='gm_global_a_chassis'))
+  dbc_dict: DbcDict = field(default_factory=lambda: {
+    Bus.pt: 'gm_global_a_powertrain_generated',
+    Bus.radar: 'gm_global_a_object',
+    Bus.chassis: 'gm_global_a_chassis',
+  })
 
 
 @dataclass
@@ -119,7 +123,6 @@ class CAR(Platforms):
   CHEVROLET_VOLT = GMPlatformConfig(
     [GMCarDocs("Chevrolet Volt 2017-18", min_enable_speed=0, video_link="https://youtu.be/QeMCN_4TFfQ")],
     GMCarSpecs(mass=1607, wheelbase=2.69, steerRatio=17.7, centerToFrontRatio=0.45, tireStiffnessFactor=0.469, minEnableSpeed=-1),
-    dbc_dict=dbc_dict('gm_global_a_powertrain_volt', 'gm_global_a_object', chassis_dbc='gm_global_a_chassis')
   )
   CADILLAC_ATS = GMPlatformConfig(
     [GMCarDocs("Cadillac ATS Premium Performance 2018")],
