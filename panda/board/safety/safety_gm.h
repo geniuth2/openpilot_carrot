@@ -119,7 +119,7 @@ static void gm_rx_hook(const CANPacket_t *to_push) {
       int gas_interceptor = GM_GET_INTERCEPTOR(to_push);
       gas_pressed = gas_interceptor > GM_GAS_INTERCEPTOR_THRESHOLD;
       gas_interceptor_prev = gas_interceptor;
-      //gm_pcm_cruise = false;
+      gm_pcm_cruise = false;
     }
 
     bool stock_ecu_detected = (addr == 0x180);  // ASCMLKASteeringCmd
