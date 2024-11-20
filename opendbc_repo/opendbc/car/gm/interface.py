@@ -291,8 +291,6 @@ class CarInterface(CarInterfaceBase):
       if candidate in CC_ONLY_CAR:
         ret.flags |= GMFlags.PEDAL_LONG.value
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_GM_PEDAL_LONG
-        if experimental_long:
-          ret.openpilotLongitudinalControl = True
         # Note: Low speed, stop and go not tested. Should be fairly smooth on highway
         ret.longitudinalTuning.kpBP = [0., 3., 6., 35.]
         ret.longitudinalTuning.kpV = [0.10, 0.175, 0.225, 0.33]
