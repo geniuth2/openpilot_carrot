@@ -281,7 +281,7 @@ static safety_config gm_init(uint16_t param) {
     {.msg = {{0xC9, 0, 8, .frequency = 10U}, { 0 }, { 0 }}},
   };
 
-  static const CanMsg GM_CAM_TX_MSGS[] = {{0x180, 0, 4}, {0x200, 0, 6},  // pt bus
+  static const CanMsg GM_CAM_TX_MSGS[] = {{0x180, 0, 4}, {0x200, 0, 6}, {0x1E1, 0, 7},  // pt bus
                                           {0x1E1, 2, 7}, {0x184, 2, 8}};  // camera bus
 
 
