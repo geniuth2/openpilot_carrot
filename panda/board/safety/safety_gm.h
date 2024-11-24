@@ -285,10 +285,6 @@ static safety_config gm_init(uint16_t param) {
                                           {0x1E1, 2, 7}, {0x184, 2, 8}};  // camera bus
 
 
-  static const CanMsg GM_CC_LONG_TX_MSGS[] = {{0x180, 0, 4}, {0x1E1, 0, 7},  // pt bus
-                                              {0x184, 2, 8}, {0x1E1, 2, 7}};  // camera bus
-
-
   gm_hw = GET_FLAG(param, GM_PARAM_HW_CAM) ? GM_CAM : GM_ASCM;
   gm_force_ascm = GET_FLAG(param, GM_PARAM_HW_ASCM_LONG);
 
