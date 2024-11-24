@@ -209,18 +209,10 @@ class CAR(Platforms):
     [GMCarDocs("Chevrolet Volt LT 2017-18")],
     CHEVROLET_VOLT.specs,
   )
-  CHEVROLET_BOLT_2017 = GMPlatformConfig(
-    [GMCarDocs("Chevrolet Bolt EV 2017")],
-    CHEVROLET_BOLT_EUV.specs,
-  )
-  CHEVROLET_BOLT_2018 = GMPlatformConfig(
-    [GMCarDocs("Chevrolet Bolt EV 2018-21")],
-    CHEVROLET_BOLT_EUV.specs,
-  )
   CHEVROLET_BOLT_CC = GMPlatformConfig(
     [
-      GMCarDocs("Chevrolet Bolt EUV LT 2022-23"),
-      GMCarDocs("Chevrolet Bolt EV LT 2022-23"),
+      GMCarDocs("Chevrolet Bolt EUV 2022-23 - No-ACC"),
+      GMCarDocs("Chevrolet Bolt EV 2017-23 - No-ACC"),
     ],
     CHEVROLET_BOLT_EUV.specs,
   )
