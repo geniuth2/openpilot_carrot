@@ -40,6 +40,7 @@ class CarState(CarStateBase):
     self.cruise_buttons = 0
     self.buttons_counter = 0
     self.single_pedal_mode = False
+    self.pedal_steady = 0.
 
     # for delay Accfault event
     self.accFaultedCount = 0
@@ -125,8 +126,13 @@ class CarState(CarStateBase):
       ret.regenBraking = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0
       self.single_pedal_mode = ret.gearShifter == GearShifter.low or pt_cp.vl["EVDriveMode"]["SinglePedalModeActive"] == 1
 
-    ret.gas = pt_cp.vl["AcceleratorPedal2"]["AcceleratorPedal2"] / 254.
-    ret.gasPressed = ret.gas > 1e-5
+    if self.CP.enableGasInterceptorDEPRECATED:
+      ret.gas = (pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
+      threshold = 15 if self.CP.carFingerprint in CAMERA_ACC_CAR else 4
+      ret.gasPressed = ret.gas > threshold
+    else:
+      ret.gas = pt_cp.vl["AcceleratorPedal2"]["AcceleratorPedal2"] / 254.
+      ret.gasPressed = ret.gas > 1e-5
 
     ret.steeringAngleDeg = pt_cp.vl["PSCMSteeringAngle"]["SteeringWheelAngle"]
     ret.steeringRateDeg = pt_cp.vl["PSCMSteeringAngle"]["SteeringWheelRate"]
@@ -278,6 +284,11 @@ class CarState(CarStateBase):
       pt_messages += [
         ("ECMCruiseControl", 10),
       ]
+    if CP.enableGasInterceptorDEPRECATED:
+      pt_messages += [
+        ("GAS_SENSOR", 50),
+      ]
+    
     cam_messages = []
     if CP.networkLocation == NetworkLocation.fwdCamera and not CP.flags & GMFlags.NO_CAMERA.value:
       cam_messages += [

@@ -20,6 +20,8 @@ class CarControllerParams:
   STEER_DRIVER_MULTIPLIER = 4
   STEER_DRIVER_FACTOR = 100
   NEAR_STOP_BRAKE_PHASE = 0.1 #0.5  # m/s
+  SNG_INTERCEPTOR_GAS = 18. / 255.
+  SNG_TIME = 30  # frames until the above is reached
 
   # Heartbeat for dash "Service Adaptive Cruise" and "Service Front Camera"
   ADAS_KEEPALIVE_STEP = 100
@@ -187,26 +189,49 @@ class CAR(Platforms):
     [GMCarDocs("Chevrolet Trailblazer 2021-22")],
     GMCarSpecs(mass=1345, wheelbase=2.64, steerRatio=16.8, centerToFrontRatio=0.4, tireStiffnessFactor=1.0),
   )
+  CADILLAC_XT4 = GMSDGMPlatformConfig(
+    [GMCarDocs("Cadillac XT4 2023", "Driver Assist Package")],
+    CarSpecs(mass=1660, wheelbase=2.78, steerRatio=14.4, centerToFrontRatio=0.4),
+  )
+  CHEVROLET_VOLT_2019 = GMSDGMPlatformConfig(
+    [GMCarDocs("Chevrolet Volt 2019", "Adaptive Cruise Control (ACC) & LKAS")],
+    GMCarSpecs(mass=1607, wheelbase=2.69, steerRatio=15.7, centerToFrontRatio=0.45),
+  )
+  CHEVROLET_TRAVERSE = GMSDGMPlatformConfig(
+    [GMCarDocs("Chevrolet Traverse 2022-23", "RS, Premier, or High Country Trim")],
+    CarSpecs(mass=1955, wheelbase=3.07, steerRatio=17.9, centerToFrontRatio=0.4),
+  )
   # Separate car def is required when there is no ASCM
   # (for now) unless there is a way to detect it when it has been unplugged...
   CHEVROLET_VOLT_CC = GMPlatformConfig(
-    [GMCarDocs("CHEVROLET VOLT NO ACC")],
+    [GMCarDocs("Chevrolet Volt LT 2017-18")],
     CHEVROLET_VOLT.specs,
   )
+  CHEVROLET_BOLT_2017 = GMPlatformConfig(
+    [GMCarDocs("Chevrolet Bolt EV 2017")],
+    CHEVROLET_BOLT_EUV.specs,
+  )
+  CHEVROLET_BOLT_2018 = GMPlatformConfig(
+    [GMCarDocs("Chevrolet Bolt EV 2018-21")],
+    CHEVROLET_BOLT_EUV.specs,
+  )
   CHEVROLET_BOLT_CC = GMPlatformConfig(
-    [GMCarDocs("CHEVROLET BOLT EV NO ACC")],
+    [
+      GMCarDocs("Chevrolet Bolt EUV LT 2022-23"),
+      GMCarDocs("Chevrolet Bolt EV LT 2022-23"),
+    ],
     CHEVROLET_BOLT_EUV.specs,
   )
   CHEVROLET_EQUINOX_CC = GMPlatformConfig(
-    [GMCarDocs("CHEVROLET EQUINOX NO ACC")],
+    [GMCarDocs("Chevrolet Equinox NO ACC 2019-22")],
     CHEVROLET_EQUINOX.specs,
   )
   CHEVROLET_SUBURBAN = GMPlatformConfig(
-    [GMCarDocs("Chevrolet Suburban Premier 2016-2020")],
+    [GMCarDocs("Chevrolet Suburban Premier 2016-20")],
     CarSpecs(mass=2731, wheelbase=3.302, steerRatio=17.3, centerToFrontRatio=0.49),
   )
   CHEVROLET_SUBURBAN_CC = GMPlatformConfig(
-    [GMCarDocs("CHEVROLET SUBURBAN NO ACC")],
+    [GMCarDocs("Chevrolet Suburban 2016-20")],
     CHEVROLET_SUBURBAN.specs,
   )
   GMC_YUKON_CC = GMPlatformConfig(
@@ -218,7 +243,7 @@ class CAR(Platforms):
     CarSpecs(mass=2358, wheelbase=3.11, steerRatio=17.7, centerToFrontRatio=0.4),
   )
   CHEVROLET_TRAILBLAZER_CC = GMPlatformConfig(
-    [GMCarDocs("CHEVROLET TRAILBLAZER NO ACC")],
+    [GMCarDocs("Chevrolet Trailblazer NO ACC 2021-22")],
     CHEVROLET_TRAILBLAZER.specs,
   )
   CHEVROLET_MALIBU_CC = GMPlatformConfig(
@@ -229,21 +254,9 @@ class CAR(Platforms):
     [GMCarDocs("Cadillac XT5 No ACC")],
     CarSpecs(mass=1810, wheelbase=2.86, steerRatio=16.34, centerToFrontRatio=0.5),
   )
-  CADILLAC_XT4 = GMPlatformConfig(
-    [GMCarDocs("Cadillac XT4 2023", "Driver Assist Package")],
-    GMCarSpecs(mass=1660, wheelbase=2.78, steerRatio=14.4, centerToFrontRatio=0.4),
-  )
   BUICK_BABYENCLAVE = GMPlatformConfig(
     [GMCarDocs("Buick Baby Enclave 2020-23", "Driver Assist Package")],
     CarSpecs(mass=2050, wheelbase=2.86, steerRatio=16.0, centerToFrontRatio=0.5),
-  )
-  CHEVROLET_VOLT_2019 = GMSDGMPlatformConfig(
-    [GMCarDocs("Chevrolet Volt 2019", "Adaptive Cruise Control (ACC) & LKAS")],
-    GMCarSpecs(mass=1607, wheelbase=2.69, steerRatio=15.7, centerToFrontRatio=0.45),
-  )
-  CHEVROLET_TRAVERSE = GMSDGMPlatformConfig(
-    [GMCarDocs("Chevrolet Traverse 2022-23", "RS, Premier, or High Country Trim")],
-    GMCarSpecs(mass=1955, wheelbase=3.07, steerRatio=17.9, centerToFrontRatio=0.4),
   )
   CHEVROLET_TRAX = GMPlatformConfig(
     [GMCarDocs("Chevrolet TRAX 2024")],
