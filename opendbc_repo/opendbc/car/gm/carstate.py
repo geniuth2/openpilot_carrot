@@ -74,7 +74,7 @@ class CarState(CarStateBase):
     if self.CP.enableBsm:
       # kans
       # if self.CP.carFingerprint in SDGM_CAR:
-      if self.CP.carFingerprint in SDGM_CAR or self.CP.carFingerprint in CC_ONLY_CAR:
+      if self.CP.carFingerprint in SDGM_CAR:
         ret.leftBlindspot = cam_cp.vl["BCMBlindSpotMonitor"]["LeftBSM"] == 1
         ret.rightBlindspot = cam_cp.vl["BCMBlindSpotMonitor"]["RightBSM"] == 1
       else:
