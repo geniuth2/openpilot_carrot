@@ -164,8 +164,13 @@ class DesireHelper:
       lane_appeared = self.lane_exist_left_count.counter == int(0.2 / DT_MDL) if leftBlinker else self.lane_exist_right_count.counter == int(0.2 / DT_MDL)
     else:
       lane_available = True
-      edge_available = False
+      edge_available = True
       lane_appeared = False
+
+    auto_lane_change_blocked = leftBlinker
+    lane_availabled = not self.lane_available_last and lane_available
+    edge_availabled = not self.edge_available_last and edge_available
+    auto_lane_change_available = not auto_lane_change_blocked and lane_availabled and edge_availabled
 
     if not lateral_active or self.lane_change_timer > LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
@@ -202,7 +207,8 @@ class DesireHelper:
         elif driver_one_blinker and not blindspot_detected and lane_available:
           self.lane_change_state = LaneChangeState.laneChangeStarting
         # ATC작동인경우 차선이 나타나거나 차선이 생기면 차선변경 시작
-        elif (torque_applied or lane_appeared or (not self.lane_available_last and lane_available)) and not blindspot_detected:
+        # lane_appeared: 차선이 생기는건 안함.. 위험.  
+        elif (torque_applied or auto_lane_change_available) and not blindspot_detected:
           self.lane_change_state = LaneChangeState.laneChangeStarting
 
       # LaneChangeState.laneChangeStarting
