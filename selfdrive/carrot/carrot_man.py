@@ -1141,7 +1141,7 @@ class CarrotServ:
     # 1: startOSEPS: 구간단속시작
     # 2: inOSEPS: 구간단속중
     # 3: endOSEPS: 구간단속종료
-    if self.nSdiType in [0,1,2,3,4,7,8] and self.nSdiSpeedLimit > 0:
+    if self.nSdiType in [0,1,2,3,4,7,8, 75, 76] and self.nSdiSpeedLimit > 0:
       self.xSpdLimit = self.nSdiSpeedLimit * self.autoNaviSpeedSafetyFactor
       self.xSpdDist = self.nSdiDist
       self.xSpdType = self.nSdiType
